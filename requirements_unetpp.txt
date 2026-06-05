@@ -1,4 +1,4 @@
-# U-Net++ Training Requirements
+# U-Net++ Training Requirements — Research Edition
 # Core deep learning
 torch>=2.0.0
 torchvision>=0.15.0
@@ -13,5 +13,13 @@ scikit-learn>=1.2.0
 matplotlib>=3.5.0
 tqdm>=4.64.0
 
-# Utilities
+# Image processing
 opencv-python>=4.7.0
+scikit-image>=0.20.0
+
+# Scientific computing (CCA metric needs scipy.ndimage)
+scipy>=1.10.0
+
+# [NEW] Topological Loss — Persistent Homology
+# Required for TopologicalLoss in models/losses_unetpp.py
+gudhi>=3.8.0
