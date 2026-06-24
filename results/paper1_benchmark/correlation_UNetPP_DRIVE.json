@@ -1,37 +1,43 @@
 {
   "model": "UNetPP",
   "dataset": "DRIVE",
-  "n_images": 20,
-  "correlations": [
-    {
-      "metric": "CCA",
-      "pearson_r": 0.037321164001532375,
-      "p_value": 0.8758658332136682,
-      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+  "n": 20,
+  "correlations": {
+    "CCA": {
+      "pearson_r": 0.027620997929746715,
+      "pearson_p": 0.9079754147920744,
+      "spearman_r": -0.03308270676691729,
+      "spearman_p": 0.8898759648856192
     },
-    {
-      "metric": "JPR",
-      "pearson_r": -0.5495105033121349,
-      "p_value": 0.012081612420219419,
-      "interpretation": "MODERATE"
+    "BPR": {
+      "pearson_r": -0.7080632959047074,
+      "pearson_p": 0.0004772552931050605,
+      "spearman_r": -0.6270676691729322,
+      "spearman_p": 0.0030849406991404035
     },
-    {
-      "metric": "GED",
-      "pearson_r": 0.5247689175113849,
-      "p_value": 0.017519679052840027,
-      "interpretation": "MODERATE"
+    "JPR": {
+      "pearson_r": -0.5496388792894884,
+      "pearson_p": 0.012057473728363178,
+      "spearman_r": -0.5388717612935542,
+      "spearman_p": 0.014222214917520869
     },
-    {
-      "metric": "SkelDice",
-      "pearson_r": -0.11677195469518162,
-      "p_value": 0.6239374621304815,
-      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+    "GED": {
+      "pearson_r": 0.5280554263356956,
+      "pearson_p": 0.016701440290806006,
+      "spearman_r": 0.5203007518796992,
+      "spearman_p": 0.018683221143120664
     },
-    {
-      "metric": "BPR",
-      "pearson_r": -0.7086131566404565,
-      "p_value": 0.0004702821348802974,
-      "interpretation": "STRONG   \u2717 Dice tracks this"
+    "SkelDice": {
+      "pearson_r": -0.11649341740860028,
+      "pearson_p": 0.6247708442063318,
+      "spearman_r": 0.021052631578947364,
+      "spearman_p": 0.9297994024457079
+    },
+    "SkelHD": {
+      "pearson_r": 0.03894490346665546,
+      "pearson_p": 0.8705077765850006,
+      "spearman_r": 0.3106431208775953,
+      "spearman_p": 0.18251558408409824
     }
-  ]
+  }
 }

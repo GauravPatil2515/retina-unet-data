@@ -8,11 +8,13 @@ Automatically classifies each prediction image into one or more
 failure categories:
 
   F1  Capillary Dropout   — thin vessels missing (skeleton coverage)
-  F2  Branch Break        — continuous vessel becomes disconnected
-  F3  False Bridge        — two vessels incorrectly merged
-  F4  Peripheral Loss     — outer retina under-segmented
+  F2  Branch Merge        — model merges/loses branches (BFR < -0.05)
+  F3  False Bridge        — two vessels incorrectly connected
   F5  Junction Error      — bifurcation structure wrong
-  F6  Crossing Error      — vessel crossing topology corrupted
+
+NOTE: F4 (Peripheral Loss) and F6 (Crossing Error) removed — both
+returned zero instances on DRIVE (n=20). Included here as stub
+detectors for future use on larger datasets (FIVES, ORIGA, etc.).
 
 Outputs:
   results/paper1_benchmark/failure_taxonomy.csv
@@ -46,11 +48,9 @@ from evaluation.graph_metrics import VesselGraphMetrics
 # -----------------------------------------------------------------------
 THR = {
     "F1_svd_drop":         0.05,   # was 0.15 — too strict
-    "F2_bfr_positive":     0.05,   # was 0.20 — too strict
-    "F3_bfr_negative":    -0.10,   # was -0.25 — too strict
-    "F4_peripheral_ratio": 0.25,   # was 0.40 — too strict
+    "F2_bfr_negative":    -0.05,   # Branch Merge: model produces fewer branches than GT
+    "F4_peripheral_ratio": 0.25,   # stub — removed from main taxonomy
     "F5_jpr_drop":         0.50,   # was 0.30 — too lenient
-    "F6_crossing_iou":     0.65,   # was 0.50 — too lenient
 }
 
 MIN_COMP_PX = 10
@@ -84,26 +84,33 @@ def detect_F1_capillary_dropout(pred, gt, sm: StructuralMetrics) -> bool:
     return (skd - svd) > THR["F1_svd_drop"]
 
 
-def detect_F2_branch_break(pred, gt, sm: StructuralMetrics) -> bool:
+def detect_F2_branch_merge(pred, gt, sm: StructuralMetrics) -> bool:
     """
-    F2: Prediction has more components than GT (vessel split into segments).
-    Signal: BFR > threshold (positive = over-fragmented).
+    F2: Prediction has fewer branches than GT (vessels merged/lost).
+    Signal: BFR < negative threshold (model merges branches → fewer components).
     """
     skel_pred = skeletonize(pred).astype(np.uint8)
     skel_gt   = skeletonize(gt).astype(np.uint8)
     bfr = sm.branch_fragmentation_ratio(skel_pred, skel_gt)
-    return bfr > THR["F2_bfr_positive"]
+    return bfr < THR["F2_bfr_negative"]
 
 
 def detect_F3_false_bridge(pred, gt, sm: StructuralMetrics) -> bool:
     """
-    F3: Prediction merges separate vessels.
-    Signal: BFR < negative threshold (fewer components than GT).
+    F3: Prediction creates false connections (bridges) between vessels.
+    Signal: Model has significantly fewer connected components than GT,
+    meaning it bridged gaps that should be disconnected.
     """
-    skel_pred = skeletonize(pred).astype(np.uint8)
-    skel_gt   = skeletonize(gt).astype(np.uint8)
-    bfr = sm.branch_fragmentation_ratio(skel_pred, skel_gt)
-    return bfr < THR["F3_bfr_negative"]
+    pred_bin = (pred > 0.5).astype(np.uint8)
+    gt_bin   = (gt   > 0.5).astype(np.uint8)
+    # Count components similarly to structural_metrics (filtering noise)
+    pred_labeled, n_pred = ndimage.label(pred_bin)
+    gt_labeled, n_gt     = ndimage.label(gt_bin)
+    # Don't filter by size here — we want raw component count difference
+    # False bridge: model has fewer components (bridged gaps)
+    if n_gt == 0:
+        return False
+    return n_pred < n_gt * 0.7
 
 
 def detect_F4_peripheral_loss(pred, gt) -> bool:
@@ -159,7 +166,7 @@ def detect_F6_crossing_error(pred, gt) -> bool:
     if gt_cross == 0:
         return False
     iou = pred_cross / (gt_cross + 1e-8)
-    return iou < THR["F6_crossing_iou"]
+    return iou < 0.65  # F6 threshold (stub — zero instances on DRIVE)
 
 
 # -----------------------------------------------------------------------
@@ -168,7 +175,7 @@ def detect_F6_crossing_error(pred, gt) -> bool:
 def classify_image(pred, gt, sm, gm) -> dict:
     return {
         "F1_CapillaryDropout":  detect_F1_capillary_dropout(pred, gt, sm),
-        "F2_BranchBreak":       detect_F2_branch_break(pred, gt, sm),
+        "F2_BranchMerge":       detect_F2_branch_merge(pred, gt, sm),
         "F3_FalseBridge":       detect_F3_false_bridge(pred, gt, sm),
         "F4_PeripheralLoss":    detect_F4_peripheral_loss(pred, gt),
         "F5_JunctionError":     detect_F5_junction_error(pred, gt, gm),
@@ -204,7 +211,7 @@ def main():
     freq       = {f"F{i}": 0 for i in range(1, 7)}
     freq_map   = {
         "F1_CapillaryDropout": "F1",
-        "F2_BranchBreak":      "F2",
+        "F2_BranchMerge":      "F2",
         "F3_FalseBridge":      "F3",
         "F4_PeripheralLoss":   "F4",
         "F5_JunctionError":    "F5",
@@ -255,11 +262,11 @@ def main():
     print("=" * 60)
     labels = {
         "F1": "Capillary Dropout ",
-        "F2": "Branch Break      ",
+        "F2": "Branch Merge      ",
         "F3": "False Bridge      ",
-        "F4": "Peripheral Loss   ",
+        "F4": "Peripheral Loss (*)",
         "F5": "Junction Error    ",
-        "F6": "Crossing Error    ",
+        "F6": "Crossing Error (*)",
     }
     for k, label in labels.items():
         n    = freq[k]
@@ -269,6 +276,10 @@ def main():
     print("=" * 60)
     print(f"  CSV  saved to: {csv_path}")
     print(f"  JSON saved to: {json_path}")
+    print(f"\n  NOTE: F4 (Peripheral Loss) and F6 (Crossing Error) returned")
+    print(f"  zero instances on the DRIVE test set (n={len(rows)}). These failure")
+    print(f"  modes require evaluation on larger or pathological datasets")
+    print(f"  such as FIVES or ORIGA.")
 
 
 RESULTS_DIR = "results/paper1_benchmark"

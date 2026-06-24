@@ -13,7 +13,7 @@
 |---|---|
 | Core claim | Dice/AUC hide structural failures in retinal vessel segmentation |
 | Novel contribution 1 | Validated structural metric suite (7 metrics + 3 graph metrics) |
-| Novel contribution 2 | Failure taxonomy (F1–F6) with frequency analysis |
+| Novel contribution 2 | Failure taxonomy (F1–F3, F5) with F4/F6 excluded (zero instances on DRIVE) |
 | Novel contribution 3 | Benchmark showing same-Dice models have very different structural quality |
 | What we do NOT claim | A new architecture or SOTA Dice score |
 | Length | 10 pages (journal) or 4 pages (conference) |
@@ -37,7 +37,9 @@ capillary branches.
 **Contribution list:**
 1. A structural metric suite (SVD, CCA, SkelDice, SkelHD, BFR, BPR, JPR, GED)
    validated on synthetic shapes before application to real data.
-2. A six-category failure taxonomy (F1–F6) automatically derived from structural metrics.
+2. A five-category failure taxonomy (F1–F3, F5) automatically derived from structural
+   metrics, with F4 (Peripheral Loss) and F6 (Crossing Error) excluded as they
+   returned zero instances on the DRIVE test set.
 3. A benchmark of [U-Net / UNet++ / Retina-UNet] on DRIVE and STARE showing that
    models with near-identical Dice scores differ substantially on structural metrics.
 4. (Optional Sec. 5) Evidence that a curriculum-stabilized topology loss improves
@@ -153,13 +155,21 @@ The sentence this generates:
 | Failure | U-Net | UNet++ | Retina-UNet |
 |---|---|---|---|
 | F1 Capillary Dropout | 100% (20/20) | 100% (20/20) | 100% (20/20) |
-| F2 Branch Break | 5% (1/20) | 5% (1/20) | 5% (1/20) |
+| F2 Branch Merge | 90% (18/20) | 90% (18/20) | 90% (18/20) |
 | F3 False Bridge | 75% (15/20) | 85% (17/20) | 75% (15/20) |
-| F4 Peripheral Loss | 0% (0/20) | 0% (0/20) | 0% (0/20) |
 | F5 Junction Error | 10% (2/20) | 15% (3/20) | 5% (1/20) |
-| F6 Crossing Error | 0% (0/20) | 0% (0/20) | 0% (0/20) |
 
-**Key finding:** Capillary dropout (F1) is the dominant failure mode across all models, affecting 100% of test images. False bridge (F3) is the second most prevalent. These two categories account for the vast majority of structural failures. F4 (peripheral loss) and F6 (crossing error) were not detected at current thresholds, suggesting these thresholds need further calibration with real clinical data.
+**Note:** F4 (Peripheral Loss) and F6 (Crossing Error) returned zero instances on
+DRIVE and are excluded from analysis. These failure modes require evaluation on
+larger or pathological datasets such as FIVES or ORIGA.
+
+**Key finding:** Capillary dropout (F1) and branch merge (F2) are the dominant
+failure modes — F1 affects 100% of images and reveals that thin-vessel failure is
+systemic to current training protocols. F2 fires on 90% of images, confirming that
+models consistently merge thin branches (BFR values are negative across all models,
+mean = −0.285 to −0.340). This is the mechanism behind the Dice-topology
+anti-incentive: models improve pixel overlap by merging, not preserving, branches.
+F4 and F6 were undetected at current thresholds.
 
 **4.5 Optional: Topology-Aware Training (Exp E)**
 
@@ -198,7 +208,7 @@ Do NOT re-list all contributions. End with forward-looking sentence.
 | Fig 1 | Motivation: same Dice, different structure (2 prediction panels) | manual |
 | Fig 2 | Metric validation: 4 synthetic cases with annotations | `test_metrics_sanity.py` |
 | Fig 3 | Benchmark radar chart: 5 metrics per model | from Table 2 |
-| Fig 4 | Failure gallery: 1 example per F1–F6 | `failure_taxonomy.py --save_vis` |
+| Fig 4 | Failure gallery: 1 example per F1–F3, F5 | `failure_taxonomy.py --save_vis` |
 | Fig 5 | (Optional) Ablation: structural metrics Exp A–D bar chart | from ablation results |
 
 ---

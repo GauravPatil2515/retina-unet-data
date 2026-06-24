@@ -1,37 +1,43 @@
 {
   "model": "UNet",
   "dataset": "DRIVE",
-  "n_images": 20,
-  "correlations": [
-    {
-      "metric": "CCA",
-      "pearson_r": -0.10740069805748273,
-      "p_value": 0.6522121725624146,
-      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+  "n": 20,
+  "correlations": {
+    "CCA": {
+      "pearson_r": -0.11361246455157803,
+      "pearson_p": 0.6334162211537665,
+      "spearman_r": -0.13704834819143957,
+      "spearman_p": 0.5645040264117465
     },
-    {
-      "metric": "JPR",
-      "pearson_r": -0.5892801900768865,
-      "p_value": 0.006254629795611426,
-      "interpretation": "MODERATE"
+    "BPR": {
+      "pearson_r": -0.685694595110307,
+      "pearson_p": 0.0008460237060344004,
+      "spearman_r": -0.6766917293233082,
+      "spearman_p": 0.0010509401983731896
     },
-    {
-      "metric": "GED",
-      "pearson_r": 0.4830910751798358,
-      "p_value": 0.030951852884014846,
-      "interpretation": "MODERATE"
+    "JPR": {
+      "pearson_r": -0.59060946626875,
+      "pearson_p": 0.006109765076356345,
+      "spearman_r": -0.6045326061570544,
+      "spearman_p": 0.0047512291022258355
     },
-    {
-      "metric": "SkelDice",
-      "pearson_r": 0.031181529634713826,
-      "p_value": 0.8961707376241995,
-      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+    "GED": {
+      "pearson_r": 0.4899502865621959,
+      "pearson_p": 0.028312893842082184,
+      "spearman_r": 0.58796992481203,
+      "spearman_p": 0.006400170876195395
     },
-    {
-      "metric": "BPR",
-      "pearson_r": -0.685164349388257,
-      "p_value": 0.0008570760751705884,
-      "interpretation": "STRONG   \u2717 Dice tracks this"
+    "SkelDice": {
+      "pearson_r": 0.02930644060308963,
+      "pearson_p": 0.9023849913636233,
+      "spearman_r": 0.08270676691729321,
+      "spearman_p": 0.7288508763559796
+    },
+    "SkelHD": {
+      "pearson_r": 0.0264276635907544,
+      "pearson_p": 0.9119361058504212,
+      "spearman_r": 0.3123825852704691,
+      "spearman_p": 0.17994926487156215
     }
-  ]
+  }
 }
