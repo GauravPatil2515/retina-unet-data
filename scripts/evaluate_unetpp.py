@@ -83,6 +83,12 @@ def evaluate(model, dataloader, cfg: EvalConfig, save_preds: bool = False, model
                 imgs   = imgs.to(cfg.DEVICE)
                 masks  = masks.cpu().numpy().squeeze()   # (H, W)
                 fname  = dataloader.dataset.image_files[idx]
+            fov_dir = os.path.join(cfg.DATA_ROOT.rstrip("/"), "test", "fov")
+            fov_path = os.path.join(fov_dir, fname)
+            if os.path.exists(fov_path):
+                fov = np.array(Image.open(fov_path).convert("L")) > 127
+            else:
+                fov = None
 
             output = model(imgs)
             if isinstance(output, (list, tuple)):
@@ -91,6 +97,9 @@ def evaluate(model, dataloader, cfg: EvalConfig, save_preds: bool = False, model
             prob = torch.sigmoid(output).cpu().numpy().squeeze()  # (H, W)
             pred = (prob >= cfg.THRESHOLD).astype(np.uint8)
             gt   = (masks > 0).astype(np.uint8)
+            if fov is not None:
+                pred = pred * fov
+                gt   = gt   * fov
 
             if save_preds:
                 pred_dir = f"results/predictions/{model_name}/{dataset}"

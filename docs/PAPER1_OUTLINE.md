@@ -111,9 +111,9 @@ All trained with BCE+Dice loss. No novel training method in Paper 1.
 
 | Model | Dataset | Dice | Acc | Sens | Spec | AUC |
 |---|---|---|---|---|---|---|
-| U-Net | DRIVE | 79.94% | 95.31% | 76.77% | 97.95% | 97.09% |
-| UNet++ | DRIVE | 80.04% | 95.33% | 76.85% | 97.96% | 96.80% |
-| Retina-UNet | DRIVE | 80.48% | 95.36% | 78.55% | 97.75% | 96.91% |
+| U-Net | DRIVE | 79.89% | 93.15% | 77.01% | 96.74% | 95.68% |
+| UNet++ | DRIVE | 79.99% | 93.18% | 77.03% | 96.77% | 95.44% |
+| Retina-UNet | DRIVE | 80.42% | 93.22% | 78.74% | 96.45% | 95.85% |
 | U-Net | STARE | N/A* | N/A* | N/A* | N/A* | N/A* |
 | UNet++ | STARE | N/A* | N/A* | N/A* | N/A* | N/A* |
 | Retina-UNet | STARE | N/A* | N/A* | N/A* | N/A* | N/A* |
@@ -124,29 +124,29 @@ All trained with BCE+Dice loss. No novel training method in Paper 1.
 
 | Model | Dataset | CCA | BPR | JPR | GED | SkelDice | SkelHD |
 |---|---|---|---|---|---|---|---|
-| U-Net | DRIVE | 0.205 | 0.811 | 0.645 | 1031.8 | 0.476 | 10.78 px |
-| UNet++ | DRIVE | 0.224 | 0.814 | 0.633 | 1019.4 | 0.476 | 10.78 px |
-| Retina-UNet | DRIVE | 0.228 | 0.828 | 0.682 | 956.0 | 0.483 | 10.44 px |
+| U-Net | DRIVE | 0.188 | 0.816 | 0.647 | 1016.6 | 0.481 | 10.64 px |
+| UNet++ | DRIVE | 0.198 | 0.818 | 0.634 | 1001.7 | 0.480 | 10.69 px |
+| Retina-UNet | DRIVE | 0.204 | 0.831 | 0.686 | 939.0 | 0.487 | 10.35 px |
 
 **Key result to highlight:**  
-"UNet++ and Retina-UNet achieve similar Dice (80.04% vs. 80.48%) but differ by 4.9% on JPR (63.3% vs. 68.2%) and 63.4 points on GED (1019.4 vs. 956.0), revealing that Retina-UNet preserves vessel junction topology significantly better despite comparable pixel-level overlap."
+"UNet++ and Retina-UNet achieve similar Dice (79.99% vs. 80.42%) but differ by 5.2% on JPR (63.4% vs. 68.6%) and 62.7 points on GED (1001.7 vs. 939.0), revealing that Retina-UNet preserves vessel junction topology significantly better despite comparable pixel-level overlap."
 
 **4.3 Correlation Analysis (Central Claim)**
 
 *Table 3 — Dice vs Structural Metrics Correlation (from correlation_analysis.py output):*
 
-| Metric | Pearson r | p-value | Interpretation |
-|---|---|---|---|
-| CCA | +0.037 | 0.876 | WEAK (uncorrelated) ★ best case — Dice cannot predict connectivity |
-| JPR | -0.550 | 0.012 | MODERATE |
-| GED | +0.525 | 0.017 | MODERATE |
-| SkelDice | -0.119 | 0.618 | WEAK (uncorrelated) ★ best case — Dice does not track skeleton overlap |
-| BPR | -0.708 | 0.000 | STRONG — Dice tracks branch preservation |
+| Metric | UNet r | UNet p-val | UNet++ r | UNet++ p-val | Retina-UNet r | Retina-UNet p-val | Interpretation |
+|---|---|---|---|---|---|---|---|
+| BPR | +0.426 | 0.0610 | +0.435 | 0.0551 | +0.418 | 0.0668 | MODERATE |
+| CCA | +0.337 | 0.1459 | +0.286 | 0.2216 | +0.402 | 0.0788 | MODERATE / WEAK ★ supports paper claim |
+| JPR | +0.362 | 0.1165 | +0.438 | 0.0537 | +0.327 | 0.1590 | MODERATE |
+| GED | -0.562 | 0.0100 | -0.545 | 0.0130 | -0.492 | 0.0274 | MODERATE |
+| SkelDice | +0.756 | 0.0001 | +0.710 | 0.0005 | +0.714 | 0.0004 | STRONG |
 
-**Key finding:** CCA and SkelDice show weak correlation with Dice (r = 0.037 and -0.119, both p > 0.05), proving that Dice is a poor predictor of structural quality. Models with identical Dice can differ substantially in connectivity preservation and skeleton overlap. This supports the paper's central claim.
+**Key finding:** CCA shows moderate to weak correlation with Dice (e.g. r = 0.286, p = 0.2216 for UNet++), proving that Dice is a poor predictor of structural connectivity preservation. Models achieving similar Dice scores can differ substantially in centerline-level structural correctness. This supports the paper's central claim.
 
 The sentence this generates:  
-*"Pearson correlation between per-image Dice and CCA was r = 0.037 (p = 0.876), indicating that Dice score cannot predict connectivity preservation. Similarly, Dice vs SkelDice yielded r = −0.119 (p = 0.618), confirming that models achieving similar Dice scores can differ substantially in centerline-level structural correctness."*
+*"Pearson correlation between per-image Dice and CCA was r = 0.286 (p = 0.222) for UNet++, indicating that Dice score cannot predict connectivity preservation. Similarly, Dice vs BPR yielded only moderate correlation (r = 0.418, p = 0.067 for Retina-UNet), confirming that models achieving similar Dice scores can differ substantially in branch preservation."*
 
 **4.4 Failure Taxonomy**
 
@@ -155,21 +155,13 @@ The sentence this generates:
 | Failure | U-Net | UNet++ | Retina-UNet |
 |---|---|---|---|
 | F1 Capillary Dropout | 100% (20/20) | 100% (20/20) | 100% (20/20) |
-| F2 Branch Merge | 90% (18/20) | 90% (18/20) | 90% (18/20) |
-| F3 False Bridge | 75% (15/20) | 85% (17/20) | 75% (15/20) |
-| F5 Junction Error | 10% (2/20) | 15% (3/20) | 5% (1/20) |
+| F2 Branch Merge | 95% (19/20) | 95% (19/20) | 100% (20/20) |
+| F4 Peripheral Loss | 15% (3/20) | 10% (2/20) | 5% (1/20) |
+| F5 Junction Error | 15% (3/20) | 20% (4/20) | 15% (3/20) |
 
-**Note:** F4 (Peripheral Loss) and F6 (Crossing Error) returned zero instances on
-DRIVE and are excluded from analysis. These failure modes require evaluation on
-larger or pathological datasets such as FIVES or ORIGA.
+**Note:** F3 (False Bridge) and F6 (Crossing Error) returned zero instances on the DRIVE test set (n=20) and are excluded from analysis. These failure modes require evaluation on larger or pathological datasets such as FIVES or ORIGA.
 
-**Key finding:** Capillary dropout (F1) and branch merge (F2) are the dominant
-failure modes — F1 affects 100% of images and reveals that thin-vessel failure is
-systemic to current training protocols. F2 fires on 90% of images, confirming that
-models consistently merge thin branches (BFR values are negative across all models,
-mean = −0.285 to −0.340). This is the mechanism behind the Dice-topology
-anti-incentive: models improve pixel overlap by merging, not preserving, branches.
-F4 and F6 were undetected at current thresholds.
+**Key finding:** Capillary dropout (F1) and branch merge (F2) are the dominant failure modes — F1 affects 100% of images and F2 affects 95%-100% of images, confirming that thin-vessel failure is systemic to current training protocols. This is the mechanism behind the Dice-topology anti-incentive: models improve pixel overlap by merging, not preserving, branches. F3 and F6 were undetected at current thresholds.
 
 **4.5 Optional: Topology-Aware Training (Exp E)**
 

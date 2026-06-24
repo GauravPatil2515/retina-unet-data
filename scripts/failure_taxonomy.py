@@ -62,8 +62,8 @@ MIN_COMP_PX = 10
 def load_pair(pred_path: str, gt_path: str):
     pred = np.array(Image.open(pred_path).convert("L"))
     gt   = np.array(Image.open(gt_path).convert("L"))
-    pred = (pred > 127).astype(np.uint8)
-    gt   = (gt   > 127).astype(np.uint8)
+    pred = (pred > 0).astype(np.uint8)
+    gt   = (gt   > 0).astype(np.uint8)
     return pred, gt
 
 
@@ -226,6 +226,15 @@ def main():
             continue
 
         pred, gt = load_pair(pred_path, gt_path)
+
+        if args.dataset == "DRIVE":
+            fov_dir = "Retina/test/fov"
+            fov_path = os.path.join(fov_dir, fname)
+            if os.path.exists(fov_path):
+                fov = np.array(Image.open(fov_path).convert("L")) > 127
+                pred = (pred * fov).astype(np.uint8)
+                gt   = (gt * fov).astype(np.uint8)
+
         failures = classify_image(pred, gt, sm, gm)
 
         for key, fkey in freq_map.items():

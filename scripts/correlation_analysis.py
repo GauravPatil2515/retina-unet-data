@@ -45,7 +45,7 @@ MIN_COMP_PX = 10
 
 def load_mask(path: str) -> np.ndarray:
     arr = np.array(Image.open(path).convert("L"))
-    return (arr > 127).astype(np.uint8)
+    return (arr > 0).astype(np.uint8)
 
 
 def compute_dice(pred, gt):
@@ -70,6 +70,14 @@ def run_correlation(pred_dir, gt_dir, model, dataset, save_plots=False):
             continue
         pred = load_mask(pred_path)
         gt   = load_mask(gt_path)
+
+        if dataset == "DRIVE":
+            fov_dir = "Retina/test/fov"
+            fov_path = os.path.join(fov_dir, fname)
+            if os.path.exists(fov_path):
+                fov = np.array(Image.open(fov_path).convert("L")) > 127
+                pred = (pred * fov).astype(np.uint8)
+                gt   = (gt * fov).astype(np.uint8)
 
         str_m = sm.compute_all(pred, gt)
         grp_m = gm.compute_all(pred, gt)

@@ -149,19 +149,48 @@ def evaluate_model(model, loader, model_name: str, dataset_name: str) -> dict:
             pred = (prob >= THRESHOLD).astype(np.uint8)
             gt   = (masks > 0).astype(np.uint8)
 
+            # Load or auto-generate FOV mask
+            fov = None
+            if dataset_name == "DRIVE":
+                fov_dir = os.path.join(DATASET_ROOTS["DRIVE"], "test", "fov")
+                fov_path = os.path.join(fov_dir, fname)
+                if os.path.exists(fov_path):
+                    fov = np.array(Image.open(fov_path).convert("L")) > 127
+            
+            if fov is None:
+                # Green-channel thresholding fallback
+                img_np = imgs.cpu().numpy().squeeze()  # shape (3, H, W)
+                green_channel = img_np[1]
+                fov = green_channel > (10.0 / 255.0)
+
+            # Apply FOV mask
+            pred = (pred * fov).astype(np.uint8)
+            gt   = (gt * fov).astype(np.uint8)
+
             # Save predictions as PNGs for failure taxonomy
             pred_dir = f"results/predictions/{model_name}/{dataset_name}"
             os.makedirs(pred_dir, exist_ok=True)
             pred_img = Image.fromarray((pred * 255).astype(np.uint8))
             pred_img.save(os.path.join(pred_dir, fname))
 
-            all_probs.append(prob.ravel())
-            all_gts.append(gt.ravel())
+            if fov is not None:
+                all_probs.append(prob[fov].ravel())
+                all_gts.append(gt[fov].ravel())
 
-            tp = np.logical_and(pred, gt).sum()
-            tn = np.logical_and(~pred.astype(bool), ~gt.astype(bool)).sum()
-            fp = np.logical_and(pred.astype(bool), ~gt.astype(bool)).sum()
-            fn = np.logical_and(~pred.astype(bool), gt.astype(bool)).sum()
+                pred_fov = pred[fov]
+                gt_fov = gt[fov]
+                tp = np.logical_and(pred_fov, gt_fov).sum()
+                tn = np.logical_and(~pred_fov.astype(bool), ~gt_fov.astype(bool)).sum()
+                fp = np.logical_and(pred_fov.astype(bool), ~gt_fov.astype(bool)).sum()
+                fn = np.logical_and(~pred_fov.astype(bool), gt_fov.astype(bool)).sum()
+            else:
+                all_probs.append(prob.ravel())
+                all_gts.append(gt.ravel())
+
+                tp = np.logical_and(pred, gt).sum()
+                tn = np.logical_and(~pred.astype(bool), ~gt.astype(bool)).sum()
+                fp = np.logical_and(pred.astype(bool), ~gt.astype(bool)).sum()
+                fn = np.logical_and(~pred.astype(bool), gt.astype(bool)).sum()
 
             std = {
                 "Dice":        2*tp / (2*tp + fp + fn + 1e-8),
@@ -176,6 +205,12 @@ def evaluate_model(model, loader, model_name: str, dataset_name: str) -> dict:
     auc = roc_auc_score(
         np.concatenate(all_gts), np.concatenate(all_probs)
     )
+
+    # Save per-image metrics to JSON
+    per_image_path = os.path.join(RESULTS_DIR, f"per_image_metrics_{model_name}_{dataset_name}.json")
+    with open(per_image_path, "w") as f:
+        json.dump(per_image, f, indent=2)
+    print(f"  Per-image metrics saved to {per_image_path}")
 
     keys   = list(per_image[0].keys())
     means  = {k: float(np.mean([m[k] for m in per_image])) for k in keys}
