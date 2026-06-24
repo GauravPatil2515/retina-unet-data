@@ -90,7 +90,7 @@ class StructuralMetrics:
     def connectivity_preservation_score(self, pred: np.ndarray, gt: np.ndarray) -> float:
         """
         Fraction of GT connected components that have a matching
-        predicted component (IoU > 0.3).
+        predicted component (IoU >= 0.5).
 
         Fix vs original:
           - Components < min_component_px are filtered BEFORE counting.
@@ -130,7 +130,7 @@ class StructuralMetrics:
                 iou = inter / (union + 1e-8)
                 best_iou = max(best_iou, iou)
 
-            if best_iou > 0.3:
+            if best_iou >= 0.5:
                 matched += 1
 
         return matched / len(valid_gt)

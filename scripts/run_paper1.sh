@@ -6,22 +6,24 @@
 # =============================================================
 # Usage:
 #   bash scripts/run_paper1.sh
-#
-# Prerequisites:
-#   source .venv/bin/activate    (or conda activate your-env)
-#   DRIVE data at data/DRIVE/
-#   STARE data at data/STARE/    (optional for cross-dataset)
-#   Model checkpoints at paths defined in benchmark_models.py
 # =============================================================
 
 set -e   # stop on first error
 LOG_DIR="results/paper1_benchmark/logs"
 mkdir -p $LOG_DIR
 
+# Dynamically select the correct python executable
+if [ -f ".venv/bin/python" ]; then
+    PYTHON_EXE=".venv/bin/python"
+else
+    PYTHON_EXE="python"
+fi
+
 echo ""
 echo "============================================================"
 echo "  Paper 1 Execution Pipeline"
 echo "  Beyond Dice: Structural Evaluation of Retinal Vessels"
+echo "  Using Python: $PYTHON_EXE"
 echo "============================================================"
 date
 
@@ -31,7 +33,7 @@ date
 # ----------------------------------------------------------
 echo ""
 echo "[STEP 1] Running synthetic metric sanity tests ..."
-python tests/test_metrics_sanity.py 2>&1 | tee $LOG_DIR/step1_sanity.log
+$PYTHON_EXE tests/test_metrics_sanity.py 2>&1 | tee $LOG_DIR/step1_sanity.log
 echo "[STEP 1] DONE"
 
 # ----------------------------------------------------------
@@ -39,7 +41,7 @@ echo "[STEP 1] DONE"
 # ----------------------------------------------------------
 echo ""
 echo "[STEP 2] Running benchmark on DRIVE ..."
-python scripts/benchmark_models.py --dataset DRIVE \
+$PYTHON_EXE scripts/benchmark_models.py --dataset DRIVE \
     2>&1 | tee $LOG_DIR/step2_drive_benchmark.log
 echo "[STEP 2] DONE"
 
@@ -49,7 +51,7 @@ echo "[STEP 2] DONE"
 if [ -d "data/STARE" ]; then
     echo ""
     echo "[STEP 3] Running benchmark on STARE ..."
-    python scripts/benchmark_models.py --dataset STARE \
+    $PYTHON_EXE scripts/benchmark_models.py --dataset STARE \
         2>&1 | tee $LOG_DIR/step3_stare_benchmark.log
     echo "[STEP 3] DONE"
 else
@@ -61,10 +63,9 @@ fi
 # ----------------------------------------------------------
 echo ""
 echo "[STEP 4] Running failure taxonomy for UNet on DRIVE ..."
-# Adjust --pred_dir to wherever your model saves predictions
-python scripts/failure_taxonomy.py \
+$PYTHON_EXE scripts/failure_taxonomy.py \
     --pred_dir results/predictions/UNet/DRIVE \
-    --gt_dir   data/DRIVE/test/mask \
+    --gt_dir   Retina/test/mask \
     --model    UNet \
     --dataset  DRIVE \
     2>&1 | tee $LOG_DIR/step4_taxonomy_unet.log
@@ -75,20 +76,33 @@ echo "[STEP 4] DONE"
 # ----------------------------------------------------------
 echo ""
 echo "[STEP 5] Running failure taxonomy for UNetPP on DRIVE ..."
-python scripts/failure_taxonomy.py \
+$PYTHON_EXE scripts/failure_taxonomy.py \
     --pred_dir results/predictions/UNetPP/DRIVE \
-    --gt_dir   data/DRIVE/test/mask \
+    --gt_dir   Retina/test/mask \
     --model    UNetPP \
     --dataset  DRIVE \
     2>&1 | tee $LOG_DIR/step5_taxonomy_unetpp.log
 echo "[STEP 5] DONE"
 
 # ----------------------------------------------------------
+# STEP 5b: Failure Taxonomy — RetinaUNet on DRIVE
+# ----------------------------------------------------------
+echo ""
+echo "[STEP 5b] Running failure taxonomy for RetinaUNet on DRIVE ..."
+$PYTHON_EXE scripts/failure_taxonomy.py \
+    --pred_dir results/predictions/RetinaUNet/DRIVE \
+    --gt_dir   Retina/test/mask \
+    --model    RetinaUNet \
+    --dataset  DRIVE \
+    2>&1 | tee $LOG_DIR/step5b_taxonomy_retina.log
+echo "[STEP 5b] DONE"
+
+# ----------------------------------------------------------
 # STEP 6: Aggregate and print final tables
 # ----------------------------------------------------------
 echo ""
 echo "[STEP 6] Aggregating results ..."
-python - <<'PYEOF'
+$PYTHON_EXE - <<'PYEOF'
 import json, os, glob
 
 result_dir = "results/paper1_benchmark"

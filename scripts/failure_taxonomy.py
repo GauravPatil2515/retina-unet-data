@@ -45,12 +45,12 @@ from evaluation.graph_metrics import VesselGraphMetrics
 # Failure thresholds (tune after first run)
 # -----------------------------------------------------------------------
 THR = {
-    "F1_svd_drop":       0.15,   # SVD drops this much below SkelDice
-    "F2_bfr_positive":   0.20,   # BFR > threshold = branch break
-    "F3_bfr_negative":  -0.25,   # BFR < threshold = false bridge
-    "F4_peripheral_ratio": 0.40, # fraction of periphery that is blank
-    "F5_jpr_drop":       0.30,   # JPR below this = junction error
-    "F6_crossing_iou":   0.50,   # crossing region IoU below this
+    "F1_svd_drop":         0.05,   # was 0.15 — too strict
+    "F2_bfr_positive":     0.05,   # was 0.20 — too strict
+    "F3_bfr_negative":    -0.10,   # was -0.25 — too strict
+    "F4_peripheral_ratio": 0.25,   # was 0.40 — too strict
+    "F5_jpr_drop":         0.50,   # was 0.30 — too lenient
+    "F6_crossing_iou":     0.65,   # was 0.50 — too lenient
 }
 
 MIN_COMP_PX = 10

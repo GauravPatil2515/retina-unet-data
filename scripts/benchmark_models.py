@@ -38,21 +38,21 @@ from evaluation.graph_metrics import VesselGraphMetrics
 # -----------------------------------------------------------------------
 MODEL_CONFIGS = {
     "UNet": {
-        "checkpoint": "results/checkpoints/unet_best.pth",
+        "checkpoint": "results/ablation_results/exp_a_baseline/checkpoints/best.pth",
         "arch":       "unet",
     },
     "UNetPP": {
-        "checkpoint": "results/checkpoints_unetpp/best_model.pth",
+        "checkpoint": "results/ablation_results/exp_b_curriculum/checkpoints/best.pth",
         "arch":       "unetpp",
     },
     "RetinaUNet": {
-        "checkpoint": "results/checkpoints/retina_unet_e9_seed42.pth",
+        "checkpoint": "results/ablation_results/exp_d_ours/checkpoints/best.pth",
         "arch":       "unetpp",   # Retina-UNet uses UNet++ backbone
     },
 }
 
 DATASET_ROOTS = {
-    "DRIVE": "data/DRIVE",
+    "DRIVE": "Retina",
     "STARE": "data/STARE",
 }
 
@@ -74,10 +74,10 @@ def load_model(name: str, cfg: dict):
         except ImportError:
             # fallback: use UNet++ as U-Net proxy if unet_baseline not present
             print(f"  [WARN] models/unet_baseline.py not found; using UNetPlusPlus for {name}")
-            from models.unetpp import UNetPlusPlus
+            from models.unet_plus_plus import UNetPlusPlus
             model = UNetPlusPlus(in_channels=3, out_channels=1)
     elif arch == "unetpp":
-        from models.unetpp import UNetPlusPlus
+        from models.unet_plus_plus import UNetPlusPlus
         model = UNetPlusPlus(in_channels=3, out_channels=1)
     else:
         raise ValueError(f"Unknown arch: {arch}")
@@ -101,8 +101,14 @@ def load_model(name: str, cfg: dict):
 def get_dataloader(dataset_name: str, batch_size: int = 1):
     root = DATASET_ROOTS[dataset_name]
     if dataset_name == "DRIVE":
-        from scripts.dataloader_unetpp import create_data_loaders
-        _, loader = create_data_loaders(root, batch_size)
+        from scripts.dataloader_unetpp import FullImageDataset
+        img_dir = os.path.join(root, "test", "image")
+        mask_dir = os.path.join(root, "test", "mask")
+        if not os.path.exists(img_dir):
+            img_dir = os.path.join(root, "images")
+            mask_dir = os.path.join(root, "1st_manual")
+        dataset = FullImageDataset(img_dir, mask_dir)
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     elif dataset_name == "STARE":
         from scripts.dataloader_stare import create_stare_loader
         loader = create_stare_loader(root, batch_size)
@@ -115,6 +121,7 @@ def get_dataloader(dataset_name: str, batch_size: int = 1):
 # Evaluate one model on one dataset
 # -----------------------------------------------------------------------
 def evaluate_model(model, loader, model_name: str, dataset_name: str) -> dict:
+    from PIL import Image
     sm = StructuralMetrics(min_component_px=MIN_COMP_PX, sparse_threshold=0.02, patch_size=32)
     gm = VesselGraphMetrics(min_branch_px=5)
 
@@ -122,9 +129,17 @@ def evaluate_model(model, loader, model_name: str, dataset_name: str) -> dict:
     all_probs, all_gts = [], []
 
     with torch.no_grad():
-        for batch in loader:
-            imgs  = batch["image"].to(DEVICE)
-            masks = batch["mask"].cpu().numpy().squeeze()
+        for idx, batch in enumerate(loader):
+            if isinstance(batch, dict):
+                imgs  = batch["image"].to(DEVICE)
+                masks = batch["mask"].cpu().numpy().squeeze()
+                img_path = batch["path"][0] if isinstance(batch["path"], list) else batch["path"]
+                fname = os.path.basename(img_path)
+            else:
+                imgs, masks = batch
+                imgs  = imgs.to(DEVICE)
+                masks = masks.cpu().numpy().squeeze()
+                fname = loader.dataset.image_files[idx]
 
             out   = model(imgs)
             if isinstance(out, (list, tuple)):
@@ -133,6 +148,12 @@ def evaluate_model(model, loader, model_name: str, dataset_name: str) -> dict:
             prob = torch.sigmoid(out).cpu().numpy().squeeze()
             pred = (prob >= THRESHOLD).astype(np.uint8)
             gt   = (masks > 0).astype(np.uint8)
+
+            # Save predictions as PNGs for failure taxonomy
+            pred_dir = f"results/predictions/{model_name}/{dataset_name}"
+            os.makedirs(pred_dir, exist_ok=True)
+            pred_img = Image.fromarray((pred * 255).astype(np.uint8))
+            pred_img.save(os.path.join(pred_dir, fname))
 
             all_probs.append(prob.ravel())
             all_gts.append(gt.ravel())

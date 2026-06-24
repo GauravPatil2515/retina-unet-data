@@ -1,0 +1,37 @@
+{
+  "model": "RetinaUNet",
+  "dataset": "DRIVE",
+  "n_images": 20,
+  "correlations": [
+    {
+      "metric": "CCA",
+      "pearson_r": 0.34056389422345024,
+      "p_value": 0.14174535691972978,
+      "interpretation": "MODERATE"
+    },
+    {
+      "metric": "JPR",
+      "pearson_r": -0.6221907314358914,
+      "p_value": 0.003396472591016616,
+      "interpretation": "STRONG   \u2717 Dice tracks this"
+    },
+    {
+      "metric": "GED",
+      "pearson_r": 0.560949697924927,
+      "p_value": 0.010078662084177247,
+      "interpretation": "MODERATE"
+    },
+    {
+      "metric": "SkelDice",
+      "pearson_r": -0.04358436531752234,
+      "p_value": 0.8552290211080602,
+      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+    },
+    {
+      "metric": "BPR",
+      "pearson_r": -0.7279557601684035,
+      "p_value": 0.00027421016159455495,
+      "interpretation": "STRONG   \u2717 Dice tracks this"
+    }
+  ]
+}

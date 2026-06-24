@@ -1,0 +1,37 @@
+{
+  "model": "UNet",
+  "dataset": "DRIVE",
+  "n_images": 20,
+  "correlations": [
+    {
+      "metric": "CCA",
+      "pearson_r": -0.10740069805748273,
+      "p_value": 0.6522121725624146,
+      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+    },
+    {
+      "metric": "JPR",
+      "pearson_r": -0.5892801900768865,
+      "p_value": 0.006254629795611426,
+      "interpretation": "MODERATE"
+    },
+    {
+      "metric": "GED",
+      "pearson_r": 0.4830910751798358,
+      "p_value": 0.030951852884014846,
+      "interpretation": "MODERATE"
+    },
+    {
+      "metric": "SkelDice",
+      "pearson_r": 0.031181529634713826,
+      "p_value": 0.8961707376241995,
+      "interpretation": "WEAK (uncorrelated)  \u2605 best case"
+    },
+    {
+      "metric": "BPR",
+      "pearson_r": -0.685164349388257,
+      "p_value": 0.0008570760751705884,
+      "interpretation": "STRONG   \u2717 Dice tracks this"
+    }
+  ]
+}

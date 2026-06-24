@@ -26,7 +26,7 @@ from evaluation.graph_metrics import VesselGraphMetrics
 # ------------------------------------------------------------------
 class EvalConfig:
     MODEL_PATH   = "results/checkpoints_unetpp/best_model.pth"
-    DATA_ROOT    = "data/DRIVE"
+    DATA_ROOT    = "Retina"
     BATCH_SIZE   = 1
     THRESHOLD    = 0.5
     DEVICE       = "cuda" if torch.cuda.is_available() else "cpu"
@@ -57,12 +57,14 @@ def standard_metrics(pred_bin, gt_bin):
 # ------------------------------------------------------------------
 # Main evaluation loop
 # ------------------------------------------------------------------
-def evaluate(model, dataloader, cfg: EvalConfig):
+def evaluate(model, dataloader, cfg: EvalConfig, save_preds: bool = False, model_name: str = "UNetPP", dataset: str = "DRIVE"):
+    from PIL import Image
     sm = StructuralMetrics(
         min_component_px=cfg.MIN_COMP_PX,
         sparse_threshold=cfg.SPARSE_THRESH,
         patch_size=cfg.PATCH_SIZE,
     )
+    # Corrected instantiation: min_branch_px should be min_branch_px=cfg.MIN_BRANCH_PX
     gm = VesselGraphMetrics(min_branch_px=cfg.MIN_BRANCH_PX)
 
     all_metrics = []
@@ -70,9 +72,17 @@ def evaluate(model, dataloader, cfg: EvalConfig):
 
     model.eval()
     with torch.no_grad():
-        for batch in dataloader:
-            imgs   = batch["image"].to(cfg.DEVICE)
-            masks  = batch["mask"].cpu().numpy().squeeze()   # (H, W)
+        for idx, batch in enumerate(dataloader):
+            if isinstance(batch, dict):
+                imgs   = batch["image"].to(cfg.DEVICE)
+                masks  = batch["mask"].cpu().numpy().squeeze()   # (H, W)
+                img_path = batch["path"][0] if isinstance(batch["path"], list) else batch["path"]
+                fname = os.path.basename(img_path)
+            else:
+                imgs, masks = batch
+                imgs   = imgs.to(cfg.DEVICE)
+                masks  = masks.cpu().numpy().squeeze()   # (H, W)
+                fname  = dataloader.dataset.image_files[idx]
 
             output = model(imgs)
             if isinstance(output, (list, tuple)):
@@ -81,6 +91,12 @@ def evaluate(model, dataloader, cfg: EvalConfig):
             prob = torch.sigmoid(output).cpu().numpy().squeeze()  # (H, W)
             pred = (prob >= cfg.THRESHOLD).astype(np.uint8)
             gt   = (masks > 0).astype(np.uint8)
+
+            if save_preds:
+                pred_dir = f"results/predictions/{model_name}/{dataset}"
+                os.makedirs(pred_dir, exist_ok=True)
+                pred_img = Image.fromarray((pred * 255).astype(np.uint8))
+                pred_img.save(os.path.join(pred_dir, fname))
 
             all_probs.append(prob.ravel())
             all_gts.append(gt.ravel())
@@ -147,10 +163,23 @@ def print_results(results: dict, label: str = "Experiment"):
 # Entry point
 # ------------------------------------------------------------------
 if __name__ == "__main__":
+    import argparse
     from scripts.dataloader_unetpp import create_data_loaders
-    from models.unetpp import UNetPlusPlus
+    from models.unet_plus_plus import UNetPlusPlus
+
+    parser = argparse.ArgumentParser(description="Evaluate UNet++ model")
+    parser.add_argument("--model_path", type=str, default=None, help="Path to model checkpoint")
+    parser.add_argument("--results_dir", type=str, default=None, help="Directory to save results")
+    parser.add_argument("--save_preds", action="store_true", help="Save prediction PNGs")
+    parser.add_argument("--model_name", type=str, default="UNetPP", help="Model name for saving predictions")
+    parser.add_argument("--dataset", type=str, default="DRIVE", help="Dataset name for saving predictions")
+    args = parser.parse_args()
 
     cfg = EvalConfig()
+    if args.model_path:
+        cfg.MODEL_PATH = args.model_path
+    if args.results_dir:
+        cfg.RESULTS_DIR = args.results_dir
 
     print(f"Loading model from {cfg.MODEL_PATH} ...")
     model = UNetPlusPlus(in_channels=3, out_channels=1).to(cfg.DEVICE)
@@ -159,11 +188,21 @@ if __name__ == "__main__":
     model.load_state_dict(state)
     print("Model loaded.")
 
-    _, test_loader = create_data_loaders(cfg.DATA_ROOT, cfg.BATCH_SIZE)
+    from scripts.dataloader_unetpp import FullImageDataset
+    test_dataset = FullImageDataset(
+        os.path.join(cfg.DATA_ROOT, "test", "image"),
+        os.path.join(cfg.DATA_ROOT, "test", "mask")
+    )
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     print("Running evaluation ...")
-    results = evaluate(model, test_loader, cfg)
-    print_results(results, label="Evaluation Results")
+    results = evaluate(
+        model, test_loader, cfg,
+        save_preds=args.save_preds,
+        model_name=args.model_name,
+        dataset=args.dataset
+    )
+    print_results(results, label=f"Evaluation Results ({os.path.basename(os.path.dirname(os.path.dirname(cfg.MODEL_PATH)))})")
 
     # Save to JSON for later comparison across experiments
     out_path = os.path.join(cfg.RESULTS_DIR, "structural_eval.json")
