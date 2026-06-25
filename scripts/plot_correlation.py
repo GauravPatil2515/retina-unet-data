@@ -30,18 +30,28 @@ from scipy import stats
 RESULTS_DIR = "results/paper1_benchmark"
 FIGURE_DIR  = "results/figures"
 
-MODEL_FILES = {
-    "U-Net":       "per_image_metrics_UNet_DRIVE.json",
-    "UNet++":      "per_image_metrics_UNetPP_DRIVE.json",
-    "Retina-UNet": "per_image_metrics_RetinaUNet_DRIVE.json",
-}
-
 COLORS  = {"U-Net": "#2196F3", "UNet++": "#FF9800", "Retina-UNet": "#4CAF50"}
 MARKERS = {"U-Net": "o",       "UNet++": "s",       "Retina-UNet": "^"}
 
-def load_model_data(model_name):
+def load_model_data(model_name, dataset="DRIVE"):
     """Load dice and bpr arrays for a given model."""
-    fname = MODEL_FILES[model_name]
+    if dataset == "both":
+        d_drive, b_drive = load_model_data(model_name, "DRIVE")
+        d_stare, b_stare = load_model_data(model_name, "STARE")
+        if d_drive is not None and d_stare is not None:
+            return np.concatenate([d_drive, d_stare]), np.concatenate([b_drive, b_stare])
+        elif d_drive is not None:
+            return d_drive, b_drive
+        else:
+            return d_stare, b_stare
+
+    # Map model names to file patterns
+    name_map = {
+        "U-Net": "UNet",
+        "UNet++": "UNetPP",
+        "Retina-UNet": "RetinaUNet"
+    }
+    fname = f"per_image_metrics_{name_map[model_name]}_{dataset}.json"
     path = os.path.join(RESULTS_DIR, fname)
     if not os.path.exists(path):
         return None, None
@@ -69,18 +79,23 @@ def add_regression(ax, x, y):
     return r_value, p_value
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", default="DRIVE", choices=["DRIVE", "STARE", "both"])
+    args = parser.parse_args()
+
     os.makedirs(FIGURE_DIR, exist_ok=True)
     
     # Determine number of models with available data
     model_names = []
     data_dict = {}
-    for name in MODEL_FILES:
-        dice, bpr = load_model_data(name)
-        if dice is not None and len(dice) >= 5:
+    for name in ["U-Net", "UNet++", "Retina-UNet"]:
+        dice, bpr = load_model_data(name, dataset=args.dataset)
+        if dice is not None and len(dice) >= 4:
             model_names.append(name)
             data_dict[name] = (dice, bpr)
         else:
-            print(f"  [WARN] Insufficient data for {name}")
+            print(f"  [WARN] Insufficient data (or file missing) for {name} on {args.dataset}")
     
     if not model_names:
         print("  [ERROR] No valid model data found; cannot generate plot.")
@@ -100,7 +115,7 @@ def main():
         all_results[name] = {'r': r, 'p': p, 'n': len(dice)}
         ax.set_xlabel("Dice Coefficient", fontsize=12)
         ax.set_ylabel("Branch Preservation Rate (BPR)", fontsize=12)
-        ax.set_title(f"{name}", fontsize=13, fontweight='bold')
+        ax.set_title(f"{name} ({args.dataset})", fontsize=13, fontweight='bold')
         ax.grid(True, alpha=0.3)
         # Optionally add correlation text
         ax.text(0.05, 0.95, f"r = {r:.3f}\np = {p:.3f}",
@@ -108,12 +123,13 @@ def main():
                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     
     # Overall title
-    fig.suptitle("Dice vs Branch Preservation Rate (BPR) per Model",
+    fig.suptitle(f"Dice vs Branch Preservation Rate (BPR) per Model ({args.dataset})",
                  fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # make room for suptitle
     
-    out_pdf = os.path.join(FIGURE_DIR, "fig3_dice_bpr_correlation.pdf")
-    out_png = os.path.join(FIGURE_DIR, "fig3_dice_bpr_correlation.png")
+    suffix = f"_{args.dataset}" if args.dataset != "DRIVE" else ""
+    out_pdf = os.path.join(FIGURE_DIR, f"fig3_dice_bpr_correlation{suffix}.pdf")
+    out_png = os.path.join(FIGURE_DIR, f"fig3_dice_bpr_correlation{suffix}.png")
     fig.savefig(out_pdf, dpi=300, bbox_inches='tight')
     fig.savefig(out_png, dpi=300, bbox_inches='tight')
     print(f"  Saved: {out_pdf}")

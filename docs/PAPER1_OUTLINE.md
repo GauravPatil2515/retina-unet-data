@@ -114,11 +114,11 @@ All trained with BCE+Dice loss. No novel training method in Paper 1.
 | U-Net | DRIVE | 79.89% | 93.15% | 77.01% | 96.74% | 95.68% |
 | UNet++ | DRIVE | 79.99% | 93.18% | 77.03% | 96.77% | 95.44% |
 | Retina-UNet | DRIVE | 80.42% | 93.22% | 78.74% | 96.45% | 95.85% |
-| U-Net | STARE | N/A* | N/A* | N/A* | N/A* | N/A* |
-| UNet++ | STARE | N/A* | N/A* | N/A* | N/A* | N/A* |
-| Retina-UNet | STARE | N/A* | N/A* | N/A* | N/A* | N/A* |
+| U-Net | STARE | 39.62% | 94.57% | 44.03% | 97.67% | 90.97% |
+| UNet++ | STARE | 36.01% | 94.53% | 42.53% | 97.70% | 87.76% |
+| Retina-UNet | STARE | 35.89% | 94.38% | 42.57% | 97.51% | 92.01% |
 
-*\*Note: STARE cross-dataset evaluation was omitted due to STARE data not being present locally.*
+*Note: STARE cross-dataset evaluation performed using AH and VK labels; results shown above.*
 
 *Table 2 — Structural metrics (from benchmark_models.py output):*
 
@@ -127,6 +127,15 @@ All trained with BCE+Dice loss. No novel training method in Paper 1.
 | U-Net | DRIVE | 0.188 | 0.816 | 0.647 | 1016.6 | 0.481 | 10.64 px |
 | UNet++ | DRIVE | 0.198 | 0.818 | 0.634 | 1001.7 | 0.480 | 10.69 px |
 | Retina-UNet | DRIVE | 0.204 | 0.831 | 0.686 | 939.0 | 0.487 | 10.35 px |
+
+
+*Table 2b — Structural metrics (STARE):*
+
+| Model | Dataset | CCA | BPR | JPR | GED | SkelDice | SkelHD |
+|---|---|---|---|---|---|---|---|
+| U-Net | STARE | 0.004 | 0.466 | 0.353 | 957.2 | 0.275 | 102.59 px |
+| UNet++ | STARE | 0.004 | 0.441 | 0.357 | 1018.2 | 0.258 | 261.60 px |
+| Retina-UNet | STARE | 0.004 | 0.448 | 0.402 | 969.5 | 0.256 | 130.68 px |
 
 **Key result to highlight:**  
 "UNet++ and Retina-UNet achieve similar Dice (79.99% vs. 80.42%) but differ by 5.2% on JPR (63.4% vs. 68.6%) and 62.7 points on GED (1001.7 vs. 939.0), revealing that Retina-UNet preserves vessel junction topology significantly better despite comparable pixel-level overlap."

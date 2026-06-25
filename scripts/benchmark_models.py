@@ -87,7 +87,7 @@ def load_model(name: str, cfg: dict):
         print(f"  [SKIP] Checkpoint not found: {ckpt_path}")
         return None
 
-    ckpt  = torch.load(ckpt_path, map_location=DEVICE)
+    ckpt  = torch.load(ckpt_path, map_location=DEVICE, weights_only=False)
     state = ckpt.get("model_state_dict", ckpt)
     model.load_state_dict(state, strict=False)
     model.to(DEVICE).eval()

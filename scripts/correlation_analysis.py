@@ -58,7 +58,7 @@ def run_correlation(pred_dir, gt_dir, model, dataset, save_plots=False):
     gm  = VesselGraphMetrics()
 
     records = []
-    exts    = (".png", ".jpg", ".tif")
+    exts    = (".png", ".jpg", ".tif", ".ppm")
     files   = sorted([f for f in os.listdir(pred_dir) if f.lower().endswith(exts)])
 
     print(f"\nComputing per-image metrics for {len(files)} images ...")

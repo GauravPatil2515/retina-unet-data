@@ -192,7 +192,7 @@ if __name__ == "__main__":
 
     print(f"Loading model from {cfg.MODEL_PATH} ...")
     model = UNetPlusPlus(in_channels=3, out_channels=1).to(cfg.DEVICE)
-    ckpt = torch.load(cfg.MODEL_PATH, map_location=cfg.DEVICE)
+    ckpt = torch.load(cfg.MODEL_PATH, map_location=cfg.DEVICE, weights_only=False)
     state = ckpt.get("model_state_dict", ckpt)
     model.load_state_dict(state)
     print("Model loaded.")
