@@ -25,11 +25,27 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.unet_plus_plus import UNetPlusPlus, count_parameters
 from scripts.dataloader_unetpp import create_data_loaders, PatchDataset, CurriculumPatchDataset
 from models.losses_unetpp import DeepSupervisionLoss, BCEDiceLoss, dice_coefficient, calculate_metrics, MetricsTracker
+import argparse
+import random
+
+import argparse
 
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='U-Net++ Research Training')
+    parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--save_dir', type=str, default=None)
+    parser.add_argument('--curriculum', type=str, default='true', choices=['true','false'])
+    parser.add_argument('--use_skel', type=str, default='true', choices=['true','false'])
+    parser.add_argument('--epochs', type=int, default=None)
+    parser.add_argument('--topo_weight', type=float, default=None)
+    parser.add_argument('--checkpoint_tag', type=str, default='default')
+    return parser.parse_args()
 
 class Config:
     """Training configuration."""
@@ -233,6 +249,23 @@ def plot_training_history(history, checkpoint_dir):
 # =============================================================================
 
 def main():
+
+    args = parse_args()
+    # Set seeds
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+    # Override config with command line arguments
+    if args.save_dir:
+        Config.CHECKPOINT_DIR = args.save_dir
+    Config.USE_CURRICULUM = (args.curriculum == 'true')
+    Config.USE_TOPO_LOSS  = (args.use_skel == 'true')
+    if args.epochs:
+        Config.EPOCHS = args.epochs
+    if args.topo_weight:
+        Config.TOPO_WEIGHT = args.topo_weight
+    # Note: checkpoint_tag is not used in the current code; we could use it to modify the checkpoint dir further if needed.
+
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
@@ -274,10 +307,8 @@ def main():
     optimizer = Adam(model.parameters(), lr=Config.LEARNING_RATE,
                      weight_decay=Config.WEIGHT_DECAY)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=Config.LR_FACTOR,
-                                  patience=Config.LR_PATIENCE, min_lr=Config.MIN_LR,
-                                  verbose=True)
+        patience=Config.LR_PATIENCE, min_lr=Config.MIN_LR)
     scaler = torch.amp.GradScaler('cuda') if Config.MIXED_PRECISION else None
-
     # -------------------------------------------------------------------------
     # Training loop
     # -------------------------------------------------------------------------

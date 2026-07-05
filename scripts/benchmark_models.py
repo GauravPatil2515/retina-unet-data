@@ -54,6 +54,7 @@ MODEL_CONFIGS = {
 DATASET_ROOTS = {
     "DRIVE": "Retina",
     "STARE": "data/STARE",
+    "CHASE_DB1": "chase-db1-DatasetNinja",
 }
 
 THRESHOLD   = 0.5
@@ -111,7 +112,11 @@ def get_dataloader(dataset_name: str, batch_size: int = 1):
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     elif dataset_name == "STARE":
         from scripts.dataloader_stare import create_stare_loader
-        loader = create_stare_loader(root, batch_size)
+        # Evaluate on all 20 images of STARE for cross-dataset validation
+        loader = create_stare_loader(root, batch_size, split="all")
+    elif dataset_name == "CHASE_DB1":
+        from scripts.dataloader_chasedb import create_chase_loader
+        loader = create_chase_loader(root, batch_size)
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
     return loader
@@ -256,12 +261,12 @@ def print_paper_table(results: list):
 # -----------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", default="both",
-                        choices=["DRIVE", "STARE", "both"],
+    parser.add_argument("--dataset", default="all",
+                        choices=["DRIVE", "STARE", "CHASE_DB1", "all"],
                         help="Which dataset(s) to evaluate on")
     args = parser.parse_args()
 
-    datasets = ["DRIVE", "STARE"] if args.dataset == "both" else [args.dataset]
+    datasets = ["DRIVE", "STARE", "CHASE_DB1"] if args.dataset == "all" else [args.dataset]
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     all_results = []

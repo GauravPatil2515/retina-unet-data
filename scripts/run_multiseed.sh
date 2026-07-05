@@ -34,7 +34,7 @@ echo "============================================================"
 # ----------------------------------------------------------
 for SEED in "${SEEDS[@]}"; do
     for EXP in "${EXPS[@]}"; do
-        CKPT="results/multiseed/seed_${SEED}/exp${EXP}/best_model.pth"
+        CKPT="results/multiseed/seed_${SEED}/exp${EXP}/best.pth"
         if [ -f "$CKPT" ]; then
             echo "[SKIP] Seed=${SEED} Exp=${EXP}: checkpoint exists"
             continue
@@ -52,7 +52,7 @@ for SEED in "${SEEDS[@]}"; do
             USE_SKEL=true
         fi
 
-        python train_unetpp.py \
+        .venv/bin/python3 scripts/train_unetpp.py \
             --seed        $SEED \
             --save_dir    "results/multiseed/seed_${SEED}/exp${EXP}" \
             --curriculum  $USE_CURRICULUM \
@@ -71,13 +71,13 @@ echo "[EVAL] Running structural evaluation on all checkpoints ..."
 
 for SEED in "${SEEDS[@]}"; do
     for EXP in "${EXPS[@]}"; do
-        CKPT="results/multiseed/seed_${SEED}/exp${EXP}/best_model.pth"
+        CKPT="results/multiseed/seed_${SEED}/exp${EXP}/best.pth"
         if [ ! -f "$CKPT" ]; then
             echo "[SKIP] $CKPT not found"
             continue
         fi
         echo "  Evaluating Seed=${SEED} Exp=${EXP} ..."
-        python scripts/evaluate_unetpp.py \
+        .venv/bin/python3 scripts/evaluate_unetpp.py \
             --checkpoint  "$CKPT" \
             --output_json "${OUTDIR}/seed_${SEED}/exp${EXP}/metrics.json" \
             2>&1 | tee "${OUTDIR}/eval_seed${SEED}_exp${EXP}.log"
@@ -89,7 +89,7 @@ done
 # ----------------------------------------------------------
 echo ""
 echo "[AGGREGATE] Computing mean ± std ..."
-python - <<'PYEOF'
+.venv/bin/python3 - <<'PYEOF'
 import json, os, glob, numpy as np
 
 outdir = "results/multiseed"

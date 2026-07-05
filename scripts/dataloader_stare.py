@@ -66,7 +66,10 @@ class STAREDataset(Dataset):
         n_test  = max(1, len(img_files) // 5)
         test_f  = img_files[-n_test:]
         train_f = img_files[:-n_test]
-        chosen  = test_f if split == "test" else train_f
+        if split == "all":
+            chosen = img_files
+        else:
+            chosen = test_f if split == "test" else train_f
 
         self.samples = []
         for fname in chosen:
@@ -129,13 +132,14 @@ def create_stare_loader(
     img_size: int = 512,
     gt_folder: str = "labels-ah",
     num_workers: int = 2,
+    split: str = "test",
 ):
     """
-    Returns test DataLoader for STARE.
+    Returns DataLoader for STARE.
     """
     dataset = STAREDataset(
         root_dir=root_dir,
-        split="test",
+        split=split,
         img_size=img_size,
         augment=False,
         gt_folder=gt_folder,

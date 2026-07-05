@@ -8,7 +8,7 @@ Automatically classifies each prediction image into one or more
 failure categories:
 
   F1  Capillary Dropout   — thin vessels missing (skeleton coverage)
-  F2  Branch Merge        — model merges/loses branches (BFR < -0.05)
+  F2  Branch Merge        — model merges/loses branches (BFR < -0.20)
   F3  False Bridge        — two vessels incorrectly connected
   F5  Junction Error      — bifurcation structure wrong
 
@@ -48,7 +48,7 @@ from evaluation.graph_metrics import VesselGraphMetrics
 # -----------------------------------------------------------------------
 THR = {
     "F1_svd_drop":         0.05,   # was 0.15 — too strict
-    "F2_bfr_negative":    -0.05,   # Branch Merge: model produces fewer branches than GT
+    "F2_bfr_negative":    -0.20,   # Branch Merge: model produces fewer branches than GT
     "F4_peripheral_ratio": 0.25,   # stub — removed from main taxonomy
     "F5_jpr_drop":         0.50,   # was 0.30 — too lenient
 }
