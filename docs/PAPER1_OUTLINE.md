@@ -164,7 +164,7 @@ The sentence this generates:
 | Failure | U-Net | UNet++ | Retina-UNet |
 |---|---|---|---|
 | F1 Capillary Dropout | 100% (20/20) | 100% (20/20) | 100% (20/20) |
-| F2 Branch Merge | 95% (19/20) | 95% (19/20) | 100% (20/20) |
+| F2  Branch Merge        — model merges/loses branches (BFR < -0.20) | 18/20 (90.0%) | 19/20 (95.0%) | 17/20 (85.0%) |
 | F4 Peripheral Loss | 15% (3/20) | 10% (2/20) | 5% (1/20) |
 | F5 Junction Error | 15% (3/20) | 20% (4/20) | 15% (3/20) |
 

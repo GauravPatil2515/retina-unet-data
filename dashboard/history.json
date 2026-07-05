@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2026-03-21T23:31:32.226283",
+    "stats": {
+      "vessel_coverage": 0.0,
+      "mean_confidence": 0.458,
+      "vessel_pixels": 0,
+      "total_pixels": 960000,
+      "image_size": "800x1200"
+    }
+  },
+  {
+    "timestamp": "2026-03-24T12:23:46.263904",
+    "stats": {
+      "vessel_coverage": 10.72,
+      "mean_confidence": 0.1122,
+      "vessel_pixels": 28096,
+      "total_pixels": 262144,
+      "image_size": "512x512"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:13:11.009446",
+    "stats": {
+      "vessel_coverage": 13.76,
+      "mean_confidence": 0.1423,
+      "vessel_pixels": 36075,
+      "total_pixels": 262144,
+      "image_size": "512x512"
+    }
+  }
+]
