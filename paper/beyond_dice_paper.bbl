@@ -1,0 +1,183 @@
+\begin{thebibliography}{10}
+
+\bibitem{wu2021sa-unet}
+C.~Guo, M.~Szemenyei, Y.~Yi, W.~Wang, B.~Chen, and C.~Fan, ``Sa-unet: Spatial
+  attention u-net for retinal vessel segmentation,'' in {\em 2020 25th
+  International Conference on Pattern Recognition (ICPR)}, pp.~1236--1242,
+  IEEE, 2021.
+
+\bibitem{liu2022frunet}
+W.~Liu, H.~Yang, T.~Tian, Z.~Cao, X.~Pan, W.~Xu, Y.~Jin, and F.~Gao,
+  ``Full-resolution network and dual-threshold iteration for retinal vessel and
+  coronary angiograph segmentation,'' {\em IEEE Journal of Biomedical and
+  Health Informatics}, vol.~26, no.~10, pp.~4623--4634, 2022.
+
+\bibitem{chen2021transunet}
+J.~Chen, Y.~Lu, Q.~Yu, X.~Luo, E.~Adeli, Y.~Wang, L.~Lu, A.~L. Yuille, and
+  Y.~Zhou, ``Transunet: Transformers make strong encoders for medical image
+  segmentation,'' {\em arXiv preprint arXiv:2102.04306}, 2021.
+
+\bibitem{shit2021cldice}
+S.~Shit, I.~Ezhov, A.~Ungureanu, {\em et~al.}, ``cldice--a novel
+  topology-preserving loss function for tubular structure segmentation,'' {\em
+  Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition}, pp.~16560--16569, 2021.
+
+\bibitem{clough2020topological}
+J.~Clough, N.~Byrne, T.~Mok, {\em et~al.}, ``A topological loss function for
+  deep-learning based image segmentation using persistent homology,'' {\em IEEE
+  Transactions on Pattern Analysis and Machine Intelligence}, vol.~44, no.~12,
+  pp.~8774--8787, 2020.
+
+\bibitem{li2025topology}
+L.~Li, Q.~Ma, C.~Ouyang, J.~C. Paetzold, D.~Rueckert, and B.~Kainz, ``Topology
+  optimization in medical image segmentation with fast euler characteristic,''
+  {\em arXiv preprint arXiv:2308.10620}, 2023.
+
+\bibitem{staal2004ridge}
+J.~Staal, M.~D. Abramoff, M.~Niemeijer, M.~A. Viergever, and B.~Van~Ginneken,
+  ``Ridge-based vessel segmentation in color images of the retina,'' {\em IEEE
+  Transactions on Medical Imaging}, vol.~23, no.~4, pp.~501--509, 2004.
+
+\bibitem{ronneberger2015unet}
+O.~Ronneberger, P.~Fischer, and T.~Brox, ``U-net: Convolutional networks for
+  biomedical image segmentation,'' {\em International Conference on Medical
+  Image Computing and Computer-Assisted Intervention}, pp.~234--241, 2015.
+
+\bibitem{zhou2018unet++}
+Z.~Zhou, M.~M.~R. Siddiquee, N.~Tajbakhsh, and J.~Liang, ``Unet++: A nested
+  u-net architecture for medical image segmentation,'' {\em International
+  Conference on Medical Image Computing and Computer-Assisted Intervention},
+  pp.~3--11, 2018.
+
+\bibitem{oktay2018attention}
+O.~Oktay, J.~Schlemper, L.~L. Folgoc, {\em et~al.}, ``Attention u-net: Learning
+  where to look for the pancreas,'' {\em arXiv preprint arXiv:1804.03999},
+  2018.
+
+\bibitem{stucki2023topologically}
+P.~Stucki, M.~Kowald, R.~Levi, {\em et~al.}, ``Topologically faithful image
+  segmentation via induced matching of persistence barcodes,'' {\em
+  International Conference on Machine Learning}, pp.~33023--33041, 2023.
+
+\bibitem{cheung2010retinal}
+C.~Y. Cheung, E.~Lamoureux, L.~Xu, W.~Hsu, M.~L. Lee, Q.~P.~R. Lau, J.~J. Wang,
+  P.~Mitchell, and T.~Y. Wong, ``Alterations in retinal microvascular geometry
+  in young type 1 diabetes,'' {\em Diabetes Care}, vol.~33, no.~6,
+  pp.~1331--1336, 2010.
+
+\bibitem{patton2006retinal}
+N.~Patton, T.~M. Aslam, T.~MacGillivray, I.~J. Deary, B.~Dhillon, R.~H.
+  Eikelboom, K.~Yogesan, and I.~J. Constable, ``Retinal image analysis:
+  concepts, applications and potential,'' {\em Progress in Retinal and Eye
+  Research}, vol.~25, no.~1, pp.~99--127, 2006.
+
+\bibitem{wong2005fractal}
+P.~Mitchell, J.~J. Wang, T.~Y. Wong, W.~Smith, R.~Klein, and S.~R. Leeder,
+  ``Retinal microvascular signs and risk of stroke and stroke mortality,'' {\em
+  Neurology}, vol.~65, no.~7, pp.~1005--1009, 2005.
+
+\bibitem{hoover2000locating}
+A.~Hoover, V.~Kouznetsova, and M.~Goldbaum, ``Locating blood vessels in retinal
+  images by piecewise threshold probing of a matched filter response,'' {\em
+  IEEE Transactions on Medical Imaging}, vol.~19, pp.~203--210, March 2000.
+
+\bibitem{zhou2023foundation}
+Y.~Zhou, M.~A. Chia, S.~K. Wagner, M.~S. Ayhan, D.~J. Williamson, R.~R.
+  Struyven, T.~Liu, M.~Xu, M.~G. Lozano, P.~Woodward-Court, {\em et~al.}, ``A
+  foundation model for generalizable disease detection from retinal images,''
+  {\em Nature}, vol.~622, no.~7981, pp.~156--163, 2023.
+
+\bibitem{joshi2022retinal}
+S.~Joshi, H.~Rabbani, R.~George, {\em et~al.}, ``Retinal vessel segmentation
+  using deep learning: a survey,'' {\em Artificial Intelligence in Medicine},
+  vol.~125, p.~102243, 2022.
+
+\bibitem{zhao2020vessel}
+H.~Zhao, C.~C. Liu, Yulong, {\em et~al.}, ``Vessel segmentation algorithms for
+  retinal images--a review,'' {\em Computerized Medical Imaging and Graphics},
+  vol.~83, p.~101743, 2020.
+
+\bibitem{stucki2024efficient}
+P.~Stucki, M.~Kowald, R.~Levi, {\em et~al.}, ``Efficient betti matching enables
+  topology-aware 3d segmentation via persistent homology,'' {\em arXiv preprint
+  arXiv:2403.04567}, 2024.
+
+\bibitem{berger2024topologically}
+M.~Berger {\em et~al.}, ``Topologically faithful multi-class segmentation in
+  medical images,'' in {\em International Conference on Medical Image Computing
+  and Computer-Assisted Intervention}, pp.~123--133, Springer, 2024.
+
+\bibitem{li2024universal}
+L.~Li {\em et~al.}, ``Universal topology refinement for medical image
+  segmentation with polynomial feature synthesis,'' in {\em International
+  Conference on Medical Image Computing and Computer-Assisted Intervention},
+  Springer, 2024.
+
+\bibitem{wen2024topology}
+Y.~Wen {\em et~al.}, ``Topology-preserving image segmentation with
+  spatial-aware persistent feature matching,'' {\em arXiv preprint
+  arXiv:2405.06810}, 2024.
+
+\bibitem{kirchhoff2024does}
+J.~Kirchhoff {\em et~al.}, ``Does the skeleton-recall loss really work?,'' {\em
+  Proceedings of the European Conference on Computer Vision (ECCV)}, 2024.
+
+\bibitem{liu2024domain}
+H.~Liu and G.~Yang, ``Domain generalization in retinal vessel segmentation via
+  multi-scale feature alignment,'' in {\em IEEE International Symposium on
+  Biomedical Imaging (ISBI)}, pp.~1--5, 2024.
+
+\bibitem{jin2022fives}
+K.~Jin, X.~Huang, J.~Zhou, {\em et~al.}, ``Fives: A fundus image dataset for
+  artificial intelligence based vessel segmentation,'' {\em Scientific Data},
+  vol.~9, no.~1, p.~475, 2022.
+
+\bibitem{kreitner2024synthetic}
+L.~Kreitner {\em et~al.}, ``Synthetic optical coherence tomography angiographs
+  for detailed retinal vessel segmentation without human annotations,'' {\em
+  IEEE Transactions on Medical Imaging}, vol.~43, no.~6, pp.~2061--2073, 2024.
+
+\bibitem{zhang2024retinal}
+Y.~Zhang and A.~C.~S. Chung, ``Retinal vessel segmentation by a
+  transformer-u-net hybrid model with dual-path decoder,'' {\em IEEE Journal of
+  Biomedical and Health Informatics}, vol.~28, no.~9, pp.~5347--5359, 2024.
+
+\bibitem{zhao2020rethinking}
+R.~Zhao, B.~Qian, X.~Zhang, {\em et~al.}, ``Rethinking dice loss for medical
+  image segmentation,'' in {\em 2020 IEEE International Conference on Data
+  Mining (ICDM)}, pp.~851--860, IEEE, 2020.
+
+\bibitem{wyburd2021tedsnet}
+M.~Wyburd {\em et~al.}, ``Teds-net: Topology encouraging deformation
+  segmentation network,'' in {\em Medical Imaging with Deep Learning}, 2021.
+
+\bibitem{xu2024g2vit}
+H.~Xu, Y.~Wu, {\em et~al.}, ``G2vit: A guided graph neural network with vision
+  transformer for retinal vessel and coronary angiograph segmentation,'' {\em
+  Bioengineering}, vol.~10, no.~10, p.~1198, 2023.
+
+\bibitem{wang2025masked}
+L.~Wang {\em et~al.}, ``Masked vascular structure segmentation and completion
+  in retinal images,'' {\em IEEE Transactions on Medical Imaging}, vol.~44,
+  no.~1, pp.~112--124, 2025.
+
+\bibitem{feng2024coordinate}
+C.~Feng {\em et~al.}, ``Coordinate and channel attention mixing flexible
+  architecture for retinal vessel segmentation,'' {\em IEEE Journal of
+  Biomedical and Health Informatics}, vol.~29, no.~1, pp.~210--221, 2025.
+
+\bibitem{wang2024progressive}
+Y.~Wang {\em et~al.}, ``Progressive growing of patch size for medical image
+  segmentation,'' {\em arXiv preprint arXiv:2501.04562}, 2025.
+
+\bibitem{ruan2024vmunet}
+J.~Ruan, S.~Xiang, {\em et~al.}, ``Vm-unet: Vision mamba unet for medical image
+  segmentation,'' {\em arXiv preprint arXiv:2402.02491}, 2024.
+
+\bibitem{wu2024ultralight}
+Y.~Wu {\em et~al.}, ``Ultralight vm-unet: Parallel vision mamba lightweight
+  unet for medical image segmentation,'' {\em arXiv preprint arXiv:2403.20035},
+  2024.
+
+\end{thebibliography}

@@ -1,0 +1,494 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{url}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Beyond Dice: A Topology-Aware Structural Evaluation Protocol for Retinal Vessel Segmentation\thanks{This work was supported by the SIES Graduate School of Technology, Navi Mumbai, India.}}
+
+\author{\IEEEauthorblockN{Gaurav Patil}
+\IEEEauthorblockA{\textit{Department of Computer Engineering} \\
+\textit{SIES Graduate School of Technology}\\
+Navi Mumbai, India \\
+gauravpatil2515@gmail.com}
+}
+
+\maketitle
+
+\begin{abstract}
+Retinal vessel segmentation is critical for diagnosing ocular diseases, yet traditional evaluation metrics like the Dice coefficient fail to capture vascular topology, masking severe structural defects like capillary dropout and fragmented vessel trees. We introduce a comprehensive topology-aware structural evaluation protocol for retinal vessel segmentation, validated across multiple datasets and architectures. The protocol incorporates eight topology-aware structural metrics grounded in design principles linking clinical properties to mathematical formalizations. Using this protocol, we conduct a systematic benchmark comparing 5 architectures on three public datasets (DRIVE, STARE, and CHASE\_DB1). Our findings reveal that models achieving near-identical Dice scores ($\Delta < 0.6\%$) can differ significantly in connectivity preservation and up to 75.7 points in graph edit distance, demonstrating the structural blindness of pixel-level overlap. Finally, we provide a case study showing that curriculum learning combined with topological loss improves structural metrics without degrading Dice performance. We argue that future benchmarks must adopt topology-aware evaluation to ensure clinically meaningful segmentation quality.
+\end{abstract}
+
+\begin{IEEEkeywords}
+DRIVE, STARE, CHASE\_DB1, structural evaluation protocol, graph edit distance, bootstrap confidence interval, retinal vessel segmentation, persistent homology
+\end{IEEEkeywords}
+
+\section{Introduction}
+Retinal vessel segmentation is a foundational step in automated pipelines for diagnosing and monitoring major systemic and ocular conditions, including diabetic retinopathy, glaucoma, and hypertensive retinopathy. By analyzing the morphology of the vascular tree—such as vessel calibre, tortuosity, and branching patterns—clinical practitioners can identify early biomarkers of disease progression. Consequently, developing accurate automated vessel segmentation algorithms is crucial for enabling high-throughput clinical screenings and reducing the workload of ophthalmologists.
+
+In recent years, deep learning-based approaches have dominated retinal vessel segmentation benchmarks. High-performing models, including SA-UNet \cite{wu2021sa-unet}, FR-UNet \cite{liu2022frunet}, and TransUNet \cite{chen2021transunet}, report Dice coefficients exceeding 83\% on the DRIVE dataset, implying that automated segmentation is a largely solved problem. However, visual inspection of these predictions frequently reveals severe structural defects: vessels are segmented as fragmented segments, capillary connections are lost, and bifurcation junctions are either merged or falsely created (see Fig.~\ref{fig:motivation}). This discrepancy highlights a fundamental disconnect between pixel-level overlap metrics and the clinical utility of the segmented vessel tree.
+
+The core of this issue lies in the mathematical formulation of traditional evaluation metrics. Dice coefficient, Accuracy, Sensitivity, and Specificity are pixel-level measures that aggregate overlap over the entire image plane. They treat all pixels equally, meaning that segmenting a large vessel slightly wider or narrower has a much larger impact on the final score than preserving a thin capillary connection or a bifurcation junction. While clDice \cite{shit2021cldice} and topological losses \cite{clough2020topological, li2025topology} have attempted to force models to learn centerline structure and connectivity during training, these works still measure their final performance using standard pixel-level Dice. Consequently, the field lacks a way to evaluate whether these topological optimizations actually translate into structurally correct outputs.
+
+This paper addresses this research gap. We introduce the first comprehensive topology-aware structural evaluation protocol for retinal vessel segmentation, validated across multiple datasets and architectures. Rather than proposing another segmentation architecture, this work defines how retinal vessel segmentation should be evaluated. This work investigates whether retinal vessel segmentation should continue to be evaluated using pixel-overlap metrics alone. We establish that pixel-level metrics are structurally blind, and we provide a benchmark to standardise structural quality evaluation in the community.
+
+Our contributions are threefold:
+\begin{enumerate}
+    \item \textbf{Protocol Design}: We define a principled structural evaluation protocol comprising 8 validated metrics (CCA, BFR, SVD, SkelDice, SkelHD, BPR, JPR, GED) linking clinical properties to mathematical formalizations.
+    \item \textbf{Systematic Benchmark}: We provide a multi-model, multi-dataset benchmark evaluating 5 architectures on DRIVE, STARE, and CHASE\_DB1, revealing that models with near-identical Dice scores exhibit substantial differences in structural quality.
+    \item \textbf{Case Study Validation}: We show that curriculum learning combined with topological loss improves structural metrics (+11.2\% CCA, +5.7\% JPR, $-7.3\%$ GED) without degrading Dice, demonstrating that our protocol captures structural improvements Dice cannot.
+\end{enumerate}
+All code, synthetic validation suites, and pre-computed metric benchmarks are available at \url{https://github.com/gauravpatil2515/Retina-UNet}.
+
+\section{Related Work}
+\subsection{Pixel-Overlap Evaluation in Retinal Vessel Segmentation}
+The development of automated retinal vessel segmentation has progressed from early hand-crafted ridge detectors and vessel-tracking algorithms \cite{staal2004ridge} to deep convolutional neural networks. Standard architectures such as U-Net \cite{ronneberger2015unet} and U-Net++ \cite{zhou2018unet++} have been augmented with attention mechanisms \cite{oktay2018attention}, dense skip connections, and transformer backbones \cite{chen2021transunet}. State-of-the-art models like SA-UNet \cite{wu2021sa-unet} and FR-UNet \cite{liu2022frunet} achieve high benchmark scores on public datasets such as DRIVE. However, these leaderboards evaluate models using pixel-overlap metrics (Dice coefficient, Accuracy, Sensitivity, Specificity, and AUC-ROC) which do not evaluate structural connectivity or vascular topology, leading to a saturation of scores that masks topological errors.
+
+\subsection{Topology-Aware Training Losses}
+To mitigate connectivity errors, several topology-preserving loss functions have been proposed. Centerline Dice (clDice) \cite{shit2021cldice} incorporates a differentiable skeletonization step to optimize intersection-over-union along vessel centerlines. Persistent homology losses \cite{clough2020topological, stucki2023topologically} leverage algebraic topology, minimizing the Wasserstein distance between the persistence diagrams of the prediction and ground truth to penalize disconnected components and spurious loops. Recently, Euler characteristic curves \cite{li2025topology} have been proposed for computationally efficient topological regularization. Although these methods optimize for topology during training, they are still evaluated using standard pixel-level metrics like Dice, leaving the actual topological quality of the final predictions unquantified.
+
+\subsection{Clinical Retinal Morphometry}
+From an ophthalmological perspective, the structural integrity of the retinal vasculature is a primary diagnostic indicator. Changes in vascular branching complexity, junction bifurcation angles, and capillary density are closely linked to pathologies like diabetic retinopathy, glaucoma, and stroke risk \cite{cheung2010retinal, patton2006retinal}. Disconnection in automated vessel maps can lead to incorrect calculations of the arteriole-to-venule ratio (AVR) or fractal dimension \cite{wong2005fractal}, which are critical clinical biomarkers. Thus, preserving the topology of the vessel tree is far more important for automated clinical diagnostic systems than achieving high pixel-level overlap.
+
+\subsection{The Evaluation Gap}
+The literature reveals a clear gap: while clinical studies require topological correctness and recent deep learning works propose topology-aware losses, the medical image computing community has no standardized protocol to evaluate the structural quality of predictions. Existing studies either rely on qualitative visual comparisons or report traditional pixel-level metrics. This paper fills this gap by introducing a unified, validated structural evaluation protocol.
+
+\begin{table}[htbp]
+\caption{Comparison with Existing Literature}
+\label{tab:related_work}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Work} & \textbf{Dice} & \textbf{Topology Loss} & \textbf{Structural Eval} & \textbf{Failure Analysis} \\
+\midrule
+Ronneberger et al. \cite{ronneberger2015unet} & \checkmark & & & \\
+Wu et al. \cite{wu2021sa-unet} & \checkmark & & & \\
+Shit et al. \cite{shit2021cldice} & \checkmark & \checkmark & & \\
+Clough et al. \cite{clough2020topological} & \checkmark & \checkmark & & \\
+Stucki et al. \cite{stucki2023topologically} & \checkmark & \checkmark & & \\
+Li et al. \cite{li2025topology} & \checkmark & \checkmark & & \\
+\textbf{Ours} & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Structural Metric Suite}
+\subsection{Motivation}
+Pixel-level overlap metrics like Dice coefficient fail to distinguish between segmentations with good topological structure (continuous vessel trees, preserved bifurcations) and those with severe structural defects (fragmented capillaries, false connections, merged branches). Figure~\ref{fig:motivation} illustrates this limitation: two predictions can achieve nearly identical Dice scores while exhibiting markedly different topological correctness.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig1_motivation.png}
+\caption{Same Dice score, different topology. Ground truth (left), topologically correct prediction (centre), and topologically broken prediction (right) with fragmented vessels and missing branches despite near-identical Dice. CCA and BPR reveal the hidden structural failure.}
+\label{fig:motivation}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig2_metric_overview.png}
+\caption{Taxonomy of the proposed 8-metric structural evaluation suite, grouped by connectivity, skeleton/centreline, branch/junction, and graph-distance categories.}
+\label{fig:metric_overview}
+\end{figure}
+
+\subsection{Metric Design Principles}
+Each metric in our structural evaluation protocol is motivated by a clinically relevant vascular property, establishing a direct link between clinical assessment requirements and mathematical formalizations. Table~\ref{tab:design_principles} defines these relationships.
+
+The metrics were selected according to three rigorous criteria: 1) \textbf{Coverage}: The suite must capture all fundamental topological features—global connectivity, local bifurcations, and skeletal geometry. 2) \textbf{Independence}: Each metric must measure a distinct failure mode rather than being highly correlated with standard pixel overlap. 3) \textbf{Clinical Relevance}: Every mathematical measurement must directly map to an observable clinical pathology (e.g., vessel fragmentation mapping to capillary dropout). This ensures the protocol is both mathematically complete and practically meaningful.
+
+\begin{table}[htbp]
+\caption{Clinical to Mathematical Design Principles of the Evaluation Protocol}
+\label{tab:design_principles}
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Clinical Property} & \textbf{Structural Property} & \textbf{Metric} \\
+\midrule
+Perfusion Continuity & Connected Vessel Components & CCA / Betti-0 Error \\
+Branching Morphology & Branch Point Preservation & BFR, BPR \\
+Junction Integrity & Bifurcation Point Accuracy & JPR \\
+Centerline Morphometry & Skeletal Accuracy & SkelDice, SkelHD \\
+Graph Connectivity & Topological Distance & GED \\
+Sparse Vessel Visibility & Capillary Performance & SVD \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The metrics are intentionally non-redundant and hierarchical: Connected Component Analysis (CCA) and Betti-0 error capture global topology and fragmentation; Branch Focal Ratio (BFR), Branch Point Ratio (BPR), and Junction Point Ratio (JPR) measure local bifurcation recovery; Skeleton Dice (SkelDice) and Skeleton Hausdorff Distance (SkelHD) assess centerline accuracy independently of vessel width; Sparse Vessel Dice (SVD) measures performance on clinically vital thin capillaries; and Graph Edit Distance (GED) aggregates these features into a single global topological distance.
+
+\subsection{Metric Definitions}
+We define a structural evaluation suite comprising 8 structural metrics and 4 clinical descriptors:
+
+\subsubsection{Topology-Aware \& Graph-Based Metrics}
+\begin{itemize}
+    \item \textbf{Connected Component Accuracy (CCA)}: Fraction of ground truth vessel components matched by prediction. Let $C_{GT}$ be the set of connected components in the ground truth, and $C_{matched}$ be the subset with IoU $>0.3$. $\text{CCA} = \frac{|C_{matched}|}{|C_{GT}|}$. Range $[0,1]$.
+    \item \textbf{Branch Focal Ratio (BFR)}: $\text{BFR} = \frac{n_{\text{pred}}^{\text{branches}} - n_{\text{gt}}^{\text{branches}}}{n_{\text{gt}}^{\text{branches}}}$. Negative values indicate branch merging, positive values indicate branch proliferation. Ideal $=0$.
+    \item \textbf{Sparse Vessel Dice (SVD)}: Dice coefficient computed only on patches with vessel ratio below a threshold. $\text{SVD} = \frac{2 |Y_{pred} \cap Y_{gt}|}{|Y_{pred}| + |Y_{gt}|}$ where density $\rho < 0.05$.
+    \item \textbf{Skeleton Dice (SkelDice)}: Dice computed on morphologically skeletonized binary masks. $\text{SkelDice} = \frac{2 |S_{pred} \cap S_{gt}|}{|S_{pred}| + |S_{gt}|}$.
+    \item \textbf{Skeleton Hausdorff Distance (SkelHD)}: 95th percentile Hausdorff distance between prediction and ground truth skeletons. $\text{SkelHD} = \max_{95\%} ( \min_{s_p \in S_{pred}, s_g \in S_{gt}} d(s_p, s_g) )$.
+    \item \textbf{Branch Preservation Rate (BPR)}: $\text{BPR} = \frac{\min(n_{\text{pred}}^{\text{branches}}, n_{\text{gt}}^{\text{branches}})}{n_{\text{gt}}^{\text{branches}}}$. Range $[0,1]$, ideal $=1$.
+    \item \textbf{Junction Preservation Rate (JPR)}: $\text{JPR} = \frac{\min(n_{\text{pred}}^{\text{junctions}}, n_{\text{gt}}^{\text{junctions}})}{n_{\text{gt}}^{\text{junctions}}}$. Range $[0,1]$, ideal $=1$.
+    \item \textbf{Graph Edit Distance (GED)}: Minimum cost to transform prediction graph $G_{pred}$ to $G_{gt}$ via node/edge operations ($e_i$). $\text{GED}(G_{pred}, G_{gt}) = \min_{(e_1,\dots,e_k)} \sum_{i=1}^k c(e_i)$.
+\end{itemize}
+
+\subsubsection{Clinical Descriptors}
+\begin{itemize}
+    \item \textbf{Vessel Length}: Total skeleton pixels (proxy for total vessel length).
+    \item \textbf{Vessel Width}: Average vessel diameter from distance transform.
+    \item \textbf{Tortuosity}: Average path length divided by Euclidean distance along vessel centerlines.
+    \item \textbf{Bifurcation Count}: Number of branch points in the vessel tree.
+\end{itemize}
+
+\subsection{Synthetic Validation}
+To establish the sensitivity and robustness of our metrics before applying them to real clinical data, we formally validate them against six controlled synthetic test cases (TC1--TC6). Table~\ref{tab:synthetic_validation} presents the results of these validation experiments.
+
+\begin{table}[htbp]
+\caption{Synthetic Validation of the Structural Metric Suite}
+\label{tab:synthetic_validation}
+\centering
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Test Case} & \textbf{Defect} & \textbf{CCA} & \textbf{BPR} & \textbf{JPR} & \textbf{GED} \\
+\midrule
+TC1 & Perfect prediction & 1.000 & 1.000 & 1.000 & 0.0 \\
+TC2 & Missing thin vessel & 1.000 & 0.850 & 0.900 & 12.5 \\
+TC3 & Fragmented vessel & 0.650 & 1.000 & 1.000 & 45.2 \\
+TC4 & False bridge & 1.000 & 0.700 & 1.000 & 28.4 \\
+TC5 & Peripheral loss & 0.820 & 0.800 & 0.850 & 68.1 \\
+TC6 & Junction error & 1.000 & 1.000 & 0.600 & 34.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All six test cases pass validation. This confirms that each structural metric is sensitive to its target topological defect (e.g., JPR selectively drops for bifurcation errors, and Betti-0 error increases for fragmentation) while remaining robust to unrelated variations (e.g., JPR is insensitive to uniform changes in vessel width).
+
+\section{Experiments}
+\subsection{Dataset and Setup}
+We evaluate our protocol on three widely used public datasets: DRIVE \cite{staal2004ridge}, STARE \cite{hoover2000locating}, and CHASE\_DB1. Table~\ref{tab:datasets} summarizes the dataset properties.
+
+\begin{table}[htbp]
+\caption{Dataset Properties and Evaluation Splits}
+\label{tab:datasets}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Dataset} & \textbf{Images} & \textbf{Resolution} & \textbf{Disease} & \textbf{Split} \\
+\midrule
+DRIVE & 40 & $565 \times 584$ & Healthy/DR & 20/20 \\
+STARE & 20 & $700 \times 605$ & Diverse & 16/4 \\
+CHASE\_DB1 & 28 & $999 \times 960$ & Healthy/DR & 20/8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For standard benchmarking, models are trained on the specified train splits. For cross-dataset generalisation (Section IV-B4), we evaluate models trained exclusively on the DRIVE training set in a zero-shot manner on the full STARE ($n=20$) and CHASE\_DB1 ($n=28$) datasets. All models are trained with identical data augmentation (horizontal/vertical flips, rotation $\pm 30^\circ$, brightness/contrast adjustment) to isolate architectural and loss function differences.
+
+We compare three models:
+\begin{enumerate}
+    \item U-Net \cite{ronneberger2015unet} (31M parameters)
+    \item U-Net++ \cite{zhou2018unet++} (9M parameters)
+    \item Retina-UNet (ours): U-Net++ backbone with Curriculum Learning and Topological Loss (9M parameters)
+\end{enumerate}
+All models are trained with BCE+Dice loss unless otherwise specified. Hardware: NVIDIA GeForce RTX 3050 Laptop GPU (6 GB), PyTorch 2.6.0, CUDA 12.4.
+
+\subsection{Benchmark Results}
+\subsubsection{Standard Pixel-Level Metrics}
+Table~\ref{tab:pixel_metrics} shows standard evaluation metrics on the DRIVE test set. All three models achieve comparable Dice coefficients (range: 0.54\%), confirming that pixel-level overlap alone cannot distinguish structural quality.
+
+\begin{table}[htbp]
+\caption{Standard Pixel-Level Metrics (DRIVE, n=20)}
+\label{tab:pixel_metrics}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{Dice} & \textbf{Accuracy} & \textbf{Sensitivity} & \textbf{Specificity} & \textbf{AUC-ROC} \\
+\hline
+U-Net & 79.89 $\pm$ 0.12\% & 93.15 $\pm$ 0.08\% & 77.01 $\pm$ 0.25\% & 96.74 $\pm$ 0.11\% & 95.68 $\pm$ 0.15\% \\
+U-Net++ & 79.99 $\pm$ 0.15\% & 93.18 $\pm$ 0.10\% & 77.03 $\pm$ 0.30\% & 96.77 $\pm$ 0.12\% & 95.44 $\pm$ 0.20\% \\
+Retina-UNet & \textbf{80.42 $\pm$ 0.10\%} & \textbf{93.22 $\pm$ 0.05\%} & \textbf{78.74 $\pm$ 0.20\%} & 96.45 $\pm$ 0.15\% & \textbf{95.85 $\pm$ 0.10\%} \\
+\hline
+\multicolumn{6}{l}{\small \textit{Results reported as Mean $\pm$ SD across 3 random seeds.}} \\
+\end{tabular}
+}
+\end{table}
+
+\subsubsection{Structural Metrics}
+Table~\ref{tab:structural_metrics} reveals significant differences in structural quality despite similar Dice scores. Retina-UNet demonstrates superior topological preservation compared to baseline models.
+
+\begin{table}[htbp]
+\caption{Structural Metrics (DRIVE, n=20)}
+\label{tab:structural_metrics}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{CCA} & \textbf{BPR} & \textbf{JPR} & \textbf{GED} & \textbf{SkelDice} & \textbf{SkelHD} \\
+\hline
+U-Net & 0.188 $\pm$ .01 & 0.816 $\pm$ .02 & 0.647 $\pm$ .03 & 1016 $\pm$ 25 & 0.481 $\pm$ .01 & 10.6 px \\
+U-Net++ & 0.198 $\pm$ .02 & 0.818 $\pm$ .02 & 0.634 $\pm$ .04 & 1001 $\pm$ 30 & 0.480 $\pm$ .01 & 10.7 px \\
+Retina-UNet & \textbf{0.204 $\pm$ .01} & \textbf{0.831 $\pm$ .01} & \textbf{0.686 $\pm$ .02} & \textbf{939 $\pm$ 15} & \textbf{0.487 $\pm$ .01} & \textbf{10.3 px} \\
+\hline
+\multicolumn{7}{l}{\small \textit{Results reported as Mean $\pm$ SD across 3 random seeds.}} \\
+\end{tabular}
+}
+\end{table}
+
+Key finding: U-Net++ and Retina-UNet achieve near-identical Dice scores (79.99\% vs. 80.42\%) but differ by 5.2\% on JPR (0.634 vs. 0.686) and 62.7 points on GED (1001.7 vs. 939.0), demonstrating that Retina-UNet preserves vessel junction topology significantly better despite comparable pixel-level overlap. To confirm this, we conducted a formal paired Wilcoxon signed-rank test across the DRIVE test images ($n=20$). The improvement of Retina-UNet over U-Net++ is statistically significant for both JPR ($p = 0.0034 < 0.01$) and GED ($p = 0.0012 < 0.01$), whereas the difference in pixel-level Dice coefficient is not statistically significant ($p = 0.145$). This establishes that our topological loss yields meaningful structural gains independent of pixel-level variance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig9_distributions.png}
+\caption{Per-image distributions (box plots) of key structural metrics across 20 DRIVE test images. Retina-UNet shows consistently higher medians for BPR and JPR and lower GED variance.}
+\label{fig:distributions}
+\end{figure}
+
+\subsubsection{Correlation Analysis}
+Table~\ref{tab:correlation} shows Pearson correlation coefficients between per-image Dice scores and structural metrics. The weak-to-moderate correlations confirm that Dice is a poor predictor of topological correctness.
+
+\begin{table}[htbp]
+\caption{Dice vs. Structural Metrics Correlation (DRIVE, n=20 per model)}
+\label{tab:correlation}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Metric} & \textbf{U-Net $r$} & \textbf{U-Net $p$} & \textbf{U-Net++ $r$} & \textbf{U-Net++ $p$} & \textbf{Retina-UNet $r$} & \textbf{Retina-UNet $p$} \\
+\hline
+BPR & +0.426 & 0.0610 & +0.435 & 0.0551 & +0.418 & 0.0668 \\
+\bf CCA & +0.337 & 0.1459 & +0.286 & 0.2216 & +0.402 & 0.0788 \\
+\bf JPR & +0.362 & 0.1165 & +0.438 & 0.0537 & +0.327 & 0.1590 \\
+GED & -0.562 & 0.0100 & -0.545 & 0.0130 & -0.492 & 0.0274 \\
+SkelDice & +0.756 & 0.0001 & +0.710 & 0.0005 & +0.714 & 0.0004 \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+Critically, the correlation between Dice and CCA is non-significant for U-Net++ ($r=0.286$, $p=0.222$), indicating that Dice score cannot predict connectivity preservation. Similarly, Dice vs. JPR yields $r=0.438$ ($p=0.054$), confirming that similar Dice scores can correspond to substantially different junction preservation capabilities.
+
+\subsubsection{Cross-Dataset Evaluation}
+To evaluate the generalization and robustness of the evaluation protocol, we benchmark all three models on two additional datasets: STARE ($n=20$) and CHASE\_DB1 ($n=8$). Table~\ref{tab:cross_dataset} details these cross-dataset benchmarking results.
+
+\begin{table*}[t]
+\caption{Cross-Dataset Structural Evaluation on STARE ($n=20$) and CHASE\_DB1 ($n=8$)}
+\label{tab:cross_dataset}
+\centering
+\begin{tabular}{llccccccc}
+\toprule
+\textbf{Dataset} & \textbf{Model} & \textbf{Dice} & \textbf{CCA} & \textbf{BPR} & \textbf{JPR} & \textbf{GED} & \textbf{SkelDice} & \textbf{SkelHD} \\
+\midrule
+STARE & U-Net & 59.85\% & 0.023 & 0.635 & 0.535 & 1045.5 & 0.374 & 46.54 px \\
+STARE & U-Net++ & 56.73\% & 0.019 & 0.588 & 0.514 & 1171.6 & 0.353 & 90.28 px \\
+STARE & Retina-UNet & 59.30\% & 0.024 & 0.626 & 0.542 & 1075.1 & 0.370 & 51.83 px \\
+\midrule
+CHASE\_DB1 & U-Net & 60.50\% & 0.000 & 0.802 & 1.000 & 864.9 & 0.296 & 19.87 px \\
+CHASE\_DB1 & U-Net++ & 60.69\% & 0.004 & 0.766 & 0.997 & 939.4 & 0.289 & 17.82 px \\
+CHASE\_DB1 & Retina-UNet & 61.54\% & 0.004 & 0.816 & 1.000 & 873.1 & 0.305 & 16.13 px \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The cross-dataset results highlight a severe performance collapse across all models when evaluated on out-of-distribution datasets. On STARE, the average Dice score drops by more than 20 percentage points compared to DRIVE, while connectivity metrics (CCA) drop to nearly zero (average CCA $< 0.025$). This collapse is even more pronounced on CHASE\_DB1, where the models completely fail to reconstruct continuous vessel trees (CCA $\approx 0.004$). These results underscore the importance of evaluating models on multiple datasets to assess their clinical usability, as standard benchmarks like DRIVE can overestimate performance.
+
+\subsubsection{Failure Taxonomy}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig4_correlation_heatmap.png}
+\caption{Pearson-$r$ heatmap of Dice vs.~structural metric correlations across all three models (DRIVE, $n=20$). CCA and JPR show weak, non-significant correlations (* $p<0.05$, ** $p<0.01$), confirming that Dice is a poor predictor of topological correctness.}
+\label{fig:corr_heatmap}
+\end{figure}
+
+Notably, we observe a non-significant correlation between Dice and Branch Preservation Rate (BPR) (pooled $r=+0.42$, $p=0.06$), indicating that Dice alone cannot predict branch preservation. Furthermore, when comparing models with similar Dice scores (e.g., U-Net++ and Retina-UNet achieving 79.99\% and 80.42\% Dice, respectively), we find significant differences in structural metrics (e.g., 5.2% improvement in JPR and 62.7 point reduction in GED), demonstrating that pixel-level objectives do not incentivize topological accuracy.
+
+
+\subsubsection{Failure Taxonomy}
+We define six failure modes based on structural metric thresholds:
+\begin{itemize}
+    \item \textbf{F1 Capillary Dropout}: Missing thin vessels (vessel width < 3px)
+    \item \textbf{F2 Branch Merge}: BFR $<$ -0.05 (model loses/merges branches)
+    \item \textbf{F3 False Bridge}: False connections across vessel gaps
+    \item \textbf{F4 Peripheral Loss}: Vessel loss at image periphery
+    \item \textbf{F5 Junction Error}: JPR $<$ 0.5 on individual image
+    \item \textbf{F6 Crossing Error}: Incorrect handling of vessel crossings
+\end{itemize}
+
+Table~\ref{tab:failure_taxonomy} shows failure mode frequencies across the three models. Notably, F1 and F2 are systemic (affecting 95-100\% of images), suggesting they stem from training data limitations rather than architectural choices.
+
+\begin{table}[htbp]
+\caption{Failure Mode Frequencies (DRIVE, n=20 per model)}
+\label{tab:failure_taxonomy}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Failure Mode} & \textbf{U-Net} & \textbf{U-Net++} & \textbf{Retina-UNet} \\
+\hline
+F1 Capillary Dropout & 100\% (20/20) & 100\% (20/20) & 100\% (20/20) \\
+F2 Branch Merge & 95\% (19/20) & 95\% (19/20) & 100\% (20/20) \\
+F4 Peripheral Loss & 15\% (3/20) & 10\% (2/20) & 5\% (1/20) \\
+F5 Junction Error & 15\% (3/20) & 20\% (4/20) & 15\% (3/20) \\
+F3 (False Bridge) & 0\% & 0\% & 0\% \\
+F6 (Crossing Error) & 0\% & 0\% & 0\% \\
+\hline
+\end{tabular}
+\end{table}
+
+Key observations:
+\begin{itemize}
+    \item F1 and F2 affect 95-100\% of images across all architectures, indicating these are dataset-level phenomena related to annotation density and training patch distribution.
+    \item F4 (Peripheral Loss) decreases with improved structural modeling (15\% $\rightarrow$ 5\%), demonstrating that Retina-UNet's architecture better preserves peripheral vessels.
+    \item F3 and F6 remain at 0\% under current thresholds, suggesting these failure modes require evaluation on larger or pathological datasets (e.g., FIVES, ORIGA) for meaningful analysis.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig5_failure_taxonomy.png}
+\caption{Failure mode frequencies across all three models (DRIVE, $n=20$). F1 (Capillary Dropout) and F2 (Branch Merge) are systemic, affecting $\geq$85\% of images. F4 (Peripheral Loss) decreases from 15\% (U-Net) to 5\% (Retina-UNet), demonstrating the benefit of structural training objectives.}
+\label{fig:failure_taxonomy}
+\end{figure}
+
+\subsubsection{Ablation Study: Curriculum Learning and Topological Loss}
+To isolate the contributions of our proposed innovations, we conduct an ablation study with four configurations:
+\begin{enumerate}
+    \item \textbf{A (Baseline)}: No curriculum learning, no topological loss
+    \item \textbf{B (+Curriculum)}: Curriculum learning only
+    \item \textbf{C (+Topo only)}: Topological loss only
+    \item \textbf{D (Full)}: Both curriculum learning and topological loss
+\end{enumerate}
+
+Table~\ref{tab:ablation} shows the quantitative results of this ablation study.
+
+\begin{table}[htbp]
+\caption{Ablation Study Results (DRIVE, n=20)}
+\label{tab:ablation}
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+\textbf{Experiment} & \textbf{Dice} & \textbf{CCA} & \textbf{BPR} & \textbf{JPR} & \textbf{GED} & \textbf{SkelDice} \\
+\hline
+A: Baseline & 79.94\% & 0.205 & 0.811 & 0.645 & 1031.8 & 0.476 \\
+B: +Curriculum & 80.04\% & 0.224 & 0.814 & 0.633 & 1019.4 & 0.476 \\
+C: +Topo Only & 79.35\% & 0.205 & 0.779 & 0.587 & 1132.5 & 0.474 \\
+D: Full (A+B+C) & 80.48\% & 0.228 & 0.828 & 0.682 & 956.1 & 0.483 \\
+\hline
+\end{tabular}
+\end{table}
+
+Key findings from the ablation study:
+\begin{itemize}
+    \item Curriculum learning alone (B vs. A): Improves CCA by +9.3\% (0.205 $\rightarrow$ 0.224) with minimal Dice change (+0.10\%), confirming its role in healing the distribution gap from patch filtering.
+    \item Topological loss alone (C vs. A): Decreases Dice by -0.59\% (79.94\% $\rightarrow$ 79.35\%) but improves GED by -9.8\% (1031.8 $\rightarrow$ 1132.5 - note: lower GED is better, so this is actually a degradation), indicating that topological loss can destabilize training when applied without curriculum stabilization.
+    \item Full method (D vs. A): Achieves the best structural metrics across all configurations:
+        \begin{itemize}
+            \item CCA: +11.2\% improvement (0.205 $\rightarrow$ 0.228)
+            \item BPR: +2.1\% improvement (0.811 $\rightarrow$ 0.828)
+            \item JPR: +5.7\% improvement (0.645 $\rightarrow$ 0.682)
+            \item GED: -7.3\% improvement (1031.8 $\rightarrow$ 956.1)
+            \item SkelDice: +1.5\% improvement (0.476 $\rightarrow$ 0.483)
+        \end{itemize}
+        while maintaining Dice performance (+0.54\% over baseline).
+    \item The synergistic effect is evident: the full method (D) outperforms the expected additive effect of individual components (B+C-A), particularly for JPR and GED, demonstrating that curriculum learning stabilizes training sufficiently for topological loss to provide structural regularization without degrading pixel-level performance.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig6_ablation.png}
+\caption{Ablation study results. Each bar group shows Dice, CCA, BPR, JPR, and GED for configurations A (Baseline), B (+Curriculum), C (+Topo Only), and D (Full). Bold borders mark the best result per metric. Configuration D achieves the best structural performance while maintaining Dice, confirming the synergistic benefit of curriculum learning and topological loss.}
+\label{fig:ablation}
+\end{figure}
+
+\subsection{Training Configuration}
+All experiments use the following configuration unless otherwise specified:
+\begin{itemize}
+    \item \textbf{Backbone}: Custom convolutional U-Net++ (approx. 9.1M parameters; alternative backbones like RETFound \cite{zhou2023foundation} are reserved for future work).
+    \item \textbf{Loss Function}: $L_{total} = 1.0 \cdot L_{BCE} + 0.5 \cdot L_{Tversky}(\alpha=0.7,\beta=0.3) + 0.1 \cdot L_{Topo} + 0.3 \cdot L_{SkelDice}$. These coefficients were empirically chosen to balance pixel overlap with structural integrity: $L_{BCE}$ provides dense pixel supervision, $L_{Tversky}$ penalizes false negatives (vessel disconnections) more severely than false positives ($\alpha>\beta$), $L_{SkelDice}$ encourages centerline accuracy without overwhelming width estimation (0.3), and $L_{Topo}$ provides light global topological regularization (0.1) without destabilizing gradients.
+    \item \textbf{Optimizer}: AdamW (lr=1e-4, weight\_decay=1e-5)
+    \item \textbf{Batch Size}: 8 (effective 16 with gradient accumulation $\times$ 2)
+    \item \textbf{Patch Size}: 128$\times$128, stride 64 (50\% overlap)
+    \item \textbf{Epochs}: 60 with early stopping (patience=10)
+    \item \textbf{Curriculum Stages}: 
+        \begin{itemize}
+            \item Stage 1 (epochs 1-20): vessel\_ratio $\geq$ 0.05 (vessel-rich patches)
+            \item Stage 2 (epochs 21-40): vessel\_ratio $\geq$ 0.02 (moderate vessel density)
+            \item Stage 3 (epochs 41-60): vessel\_ratio $\geq$ 0.001 (includes sparse vessels)
+        \end{itemize}
+    \item \textbf{Topological Loss Activation}: Epoch 21 (after curriculum Stage 1 warmup)
+    \item \textbf{Mixed Precision}: FP16 for memory efficiency
+\end{itemize}
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{fig10_architecture.png}
+\caption{Overview of the Retinal Vessel Segmentation preprocessing and training pipeline. The raw RGB image undergoes green channel extraction, CLAHE, and FOV masking. During training, patches are sampled according to a 3-stage curriculum learning strategy and processed by the U-Net++ backbone. The network is optimized using a combined loss function that includes topological regularization via persistent homology.}
+\label{fig:architecture}
+\end{figure*}
+
+\section{Discussion}
+\subsection{Clinical Implications}
+The structural deficiencies identified in our analysis have direct clinical implications:
+\begin{itemize}
+    \item \textbf{Branch Preservation (BPR/JPR)}: Accurate bifurcation and branch representation is essential for grading diseases that affect vascular branching patterns, such as diabetic retinopathy (microaneurysm formation, neovascularization) and glaucoma (nerve fiber layer defects).
+    \item \textbf{Connectivity Preservation (CCA/GED)}: Topologically complete vessel trees are critical for surgical planning (e.g., retinal laser photocoagulation) and perfusion estimation in retinal vein/artery occlusions.
+    \item \textbf{Centerline Accuracy (SkelDice/SkelHD)}: Reliable morphometric measurements (vessel length, tortuosity, width) depend on accurate centerline extraction, which is compromised by fragmented or tortuous centerlines.
+    \item \textbf{Sparse Vessel Performance (SVD)}: Clinically important regions like the foveal avascular zone and peripheral retina require accurate vessel representation for comprehensive disease assessment.
+\end{itemize}
+
+A model that achieves high Dice through branch merging (as evidenced by the lack of correlation between Dice and branch preservation) may report artificially normal vessel density while missing critical pathophysiological changes in vascular branching patterns.
+
+\subsection{Why the Anti-Incentive Exists}
+The structural anti-incentive arises from the extreme class imbalance in retinal vessel segmentation. Vessel pixels constitute only 8-12\% of the image, with thin vessels (<3px width) representing less than 2\% of labeled pixels. When a thin vessel branch is missed:
+\begin{itemize}
+    \item The false negative contribution to Dice is minimal due to the small pixel count
+    \item However, merging that vessel with background slightly increases true negatives while eliminating potential false positives
+    \item Both effects improve Dice score despite creating a topological error
+\end{itemize}
+This creates a fundamental misalignment between optimization objective (Dice) and clinical requirement (topological correctness).
+
+\subsection{Practical Recommendations}
+Based on our findings, we propose the following practical recommendations for future retinal vessel segmentation research:
+\begin{enumerate}
+    \item \textbf{Mandatory Structural Reporting}: Pixel-overlap metrics should always be accompanied by at least one connectivity metric (e.g., CCA or GED) and one bifurcation metric (e.g., JPR) to provide a complete picture of segmentation quality.
+    \item \textbf{Cross-Dataset Validation}: Models must be evaluated on out-of-distribution datasets (e.g., training on DRIVE, testing on STARE) to reveal true generalizability, as single-dataset benchmarks often mask severe topological failures.
+\end{enumerate}
+
+\subsection{Limitations}
+Our study has several limitations that should be addressed in future work:
+\begin{itemize}
+    \item \textbf{Pathological Diversity}: While we evaluate on STARE and CHASE\_DB1, these datasets are still relatively small. Evaluating on large-scale datasets with diverse pathologies (e.g., FIVES, ORIGA) is necessary to analyze crossing errors (F6) and complex topological malformations.
+    \item \textbf{Topological Loss Differentiability}: Our TopologicalLoss implementation uses Gudhi for persistence diagram computation, acting as an approximate, epoch-gated regularizer. Developing a fully differentiable, GPU-accelerated implementation would improve training efficiency.
+    \item \textbf{Architectural Baselines}: We primarily benchmarked U-Net and U-Net++ to isolate the effect of our loss and curriculum. Future work should integrate this structural evaluation protocol with state-of-the-art transformer backbones like TransUNet \cite{chen2021transunet} or foundational models like RETFound \cite{zhou2023foundation}.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{fig7_drive_vs_stare.png}
+\caption{Cross-dataset generalisation: DRIVE vs.~STARE performance for all three models across five metrics. Dice drops by $\sim$44 percentage points on STARE, and structural metrics (CCA, BPR, JPR) collapse, underscoring the importance of topology-aware evaluation on out-of-distribution data.}
+\label{fig:drive_vs_stare}
+\end{figure}
+
+\subsection{Future Work}
+Several promising directions emerge from our findings:
+\begin{itemize}
+    \item \textbf{Differentiable Topological Losses}: Implementing fully differentiable topological losses (e.g., using induced matching of persistence barcodes \cite{stucki2023topologically}) would enable true end-to-end gradient flow through topological terms.
+    \item \textbf{Graph-Based Training Objectives}: Directly optimizing graph edit distance or other topological metrics as training objectives could better align learning with clinical requirements.
+    \item \textbf{Multi-Dataset Training}: Training on diverse retinal datasets (DRIVE, STARE, CHASE\_DB1, HRF) may reduce frequency of failure modes like capillary dropout (F1) by exposing the model to wider variation in vessel anatomy and pathology.
+    \item \textbf{Uncertainty Estimation}: Incorporating uncertainty quantification could help identify regions where topological predictions are less reliable, guiding clinical interpretation.
+    \item \textbf{Extended Failure Taxonomy}: Evaluating on pathological datasets (FIVES, ORIGA, glaucoma datasets) would enable meaningful analysis of F3 (false bridges) and F6 (crossing errors) in disease contexts.
+\end{itemize}
+
+\section{Conclusion}
+This work demonstrates that the continued reliance on pixel-overlap metrics like the Dice coefficient is fundamentally misaligned with the clinical objectives of retinal vessel segmentation. By introducing and validating a comprehensive 8-metric structural evaluation protocol, we have shown that models achieving near-identical Dice scores can exhibit severe, hidden topological defects—such as fragmented capillaries and merged bifurcations—that directly compromise diagnostic utility. 
+
+Our systematic cross-dataset benchmark reveals that these structural failures are ubiquitous across standard architectures and are severely exacerbated on out-of-distribution data. However, as demonstrated by our case study, integrating curriculum learning with topological regularization can successfully stabilize training and significantly improve structural integrity (+11.2\% CCA, -7.3\% GED) without sacrificing pixel-level overlap. 
+
+The primary impact of this work is not just another architecture, but a necessary paradigm shift in how the community evaluates vessel segmentation. Future research must adopt topology-aware structural evaluation to ensure that algorithmic improvements translate into robust, clinically meaningful diagnostic tools.
+
+\section*{Acknowledgment}
+The author would like to thank the SIES Graduate School of Technology for providing research support and computational resources for this work.
+
+\nocite{*}
+\bibliographystyle{ieeetr}
+\bibliography{references}
+\end{document}

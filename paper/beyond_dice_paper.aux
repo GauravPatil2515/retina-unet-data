@@ -1,0 +1,142 @@
+\relax 
+\citation{wu2021sa-unet}
+\citation{liu2022frunet}
+\citation{chen2021transunet}
+\citation{shit2021cldice}
+\citation{clough2020topological,li2025topology}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\citation{staal2004ridge}
+\citation{ronneberger2015unet}
+\citation{zhou2018unet++}
+\citation{oktay2018attention}
+\citation{chen2021transunet}
+\citation{wu2021sa-unet}
+\citation{liu2022frunet}
+\citation{shit2021cldice}
+\citation{clough2020topological,stucki2023topologically}
+\citation{li2025topology}
+\citation{cheung2010retinal,patton2006retinal}
+\citation{wong2005fractal}
+\citation{ronneberger2015unet}
+\citation{wu2021sa-unet}
+\citation{shit2021cldice}
+\citation{clough2020topological}
+\citation{stucki2023topologically}
+\citation{li2025topology}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Pixel-Overlap Evaluation in Retinal Vessel Segmentation}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Topology-Aware Training Losses}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Clinical Retinal Morphometry}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}The Evaluation Gap}{2}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Comparison with Existing Literature}}{2}{}\protected@file@percent }
+\newlabel{tab:related_work}{{I}{2}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Structural Metric Suite}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Motivation}{2}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Same Dice score, different topology. Ground truth (left), topologically correct prediction (centre), and topologically broken prediction (right) with fragmented vessels and missing branches despite near-identical Dice. CCA and BPR reveal the hidden structural failure.}}{2}{}\protected@file@percent }
+\newlabel{fig:motivation}{{1}{2}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Taxonomy of the proposed 8-metric structural evaluation suite, grouped by connectivity, skeleton/centreline, branch/junction, and graph-distance categories.}}{2}{}\protected@file@percent }
+\newlabel{fig:metric_overview}{{2}{2}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Metric Design Principles}{2}{}\protected@file@percent }
+\citation{staal2004ridge}
+\citation{hoover2000locating}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Clinical to Mathematical Design Principles of the Evaluation Protocol}}{3}{}\protected@file@percent }
+\newlabel{tab:design_principles}{{II}{3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Metric Definitions}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-C}1}Topology-Aware \& Graph-Based Metrics}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-C}2}Clinical Descriptors}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Synthetic Validation}{3}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Synthetic Validation of the Structural Metric Suite}}{3}{}\protected@file@percent }
+\newlabel{tab:synthetic_validation}{{III}{3}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Experiments}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Dataset and Setup}{3}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Dataset Properties and Evaluation Splits}}{3}{}\protected@file@percent }
+\newlabel{tab:datasets}{{IV}{3}{}{}{}}
+\citation{ronneberger2015unet}
+\citation{zhou2018unet++}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Benchmark Results}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}1}Standard Pixel-Level Metrics}{4}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Standard Pixel-Level Metrics (DRIVE, n=20)}}{4}{}\protected@file@percent }
+\newlabel{tab:pixel_metrics}{{V}{4}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}2}Structural Metrics}{4}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Structural Metrics (DRIVE, n=20)}}{4}{}\protected@file@percent }
+\newlabel{tab:structural_metrics}{{VI}{4}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}3}Qualitative Results}{4}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Per-image distributions (box plots) of key structural metrics across 20 DRIVE test images. Retina-UNet shows consistently higher medians for BPR and JPR and lower GED variance.}}{4}{}\protected@file@percent }
+\newlabel{fig:distributions}{{3}{4}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}4}Correlation Analysis}{4}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Dice vs. Structural Metrics Correlation (DRIVE, n=20 per model)}}{4}{}\protected@file@percent }
+\newlabel{tab:correlation}{{VII}{4}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}5}Cross-Dataset Evaluation}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}6}Failure Taxonomy}{4}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Qualitative comparison on a DRIVE test image. From left to right: Original fundus image, Ground truth mask, U-Net++ (baseline) prediction, and Retina-UNet (proposed) prediction. The baseline model exhibits topological errors such as disconnected components and lost peripheral vessels, which are effectively mitigated by Retina-UNet's topological loss and curriculum learning.}}{5}{}\protected@file@percent }
+\newlabel{fig:qualitative}{{4}{5}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Cross-Dataset Structural Evaluation on STARE ($n=20$) and CHASE\_DB1 ($n=8$)}}{5}{}\protected@file@percent }
+\newlabel{tab:cross_dataset}{{VIII}{5}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Pearson-$r$ heatmap of Dice vs.~structural metric correlations across all three models (DRIVE, $n=20$). CCA and JPR show weak, non-significant correlations (* $p<0.05$, ** $p<0.01$), confirming that Dice is a poor predictor of topological correctness.}}{5}{}\protected@file@percent }
+\newlabel{fig:corr_heatmap}{{5}{5}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}7}Failure Taxonomy}{5}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {IX}{\ignorespaces Failure Mode Frequencies (DRIVE, n=20 per model)}}{5}{}\protected@file@percent }
+\newlabel{tab:failure_taxonomy}{{IX}{5}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}8}Ablation Study: Curriculum Learning and Topological Loss}{5}{}\protected@file@percent }
+\citation{zhou2023foundation}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Failure mode frequencies across all three models (DRIVE, $n=20$). F1 (Capillary Dropout) and F2 (Branch Merge) are systemic, affecting $\geq $85\% of images. F4 (Peripheral Loss) decreases from 15\% (U-Net) to 5\% (Retina-UNet), demonstrating the benefit of structural training objectives.}}{6}{}\protected@file@percent }
+\newlabel{fig:failure_taxonomy}{{6}{6}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {X}{\ignorespaces Ablation Study Results (DRIVE, n=20)}}{6}{}\protected@file@percent }
+\newlabel{tab:ablation}{{X}{6}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Ablation study results. Each bar group shows Dice, CCA, BPR, JPR, and GED for configurations A (Baseline), B (+Curriculum), C (+Topo Only), and D (Full). Bold borders mark the best result per metric. Configuration D achieves the best structural performance while maintaining Dice, confirming the synergistic benefit of curriculum learning and topological loss.}}{6}{}\protected@file@percent }
+\newlabel{fig:ablation}{{7}{6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Training Configuration}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Discussion}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Clinical Implications}{6}{}\protected@file@percent }
+\citation{chen2021transunet}
+\citation{zhou2023foundation}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Overview of the Retinal Vessel Segmentation preprocessing and training pipeline. The raw RGB image undergoes green channel extraction, CLAHE, and FOV masking. During training, patches are sampled according to a 3-stage curriculum learning strategy and processed by the U-Net++ backbone. The network is optimized using a combined loss function that includes topological regularization via persistent homology.}}{7}{}\protected@file@percent }
+\newlabel{fig:architecture}{{8}{7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Why the Anti-Incentive Exists}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Practical Recommendations}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Limitations}{7}{}\protected@file@percent }
+\citation{stucki2023topologically}
+\citation{*}
+\bibstyle{ieeetr}
+\bibdata{references}
+\bibcite{wu2021sa-unet}{1}
+\bibcite{liu2022frunet}{2}
+\bibcite{chen2021transunet}{3}
+\bibcite{shit2021cldice}{4}
+\bibcite{clough2020topological}{5}
+\bibcite{li2025topology}{6}
+\bibcite{staal2004ridge}{7}
+\bibcite{ronneberger2015unet}{8}
+\bibcite{zhou2018unet++}{9}
+\bibcite{oktay2018attention}{10}
+\bibcite{stucki2023topologically}{11}
+\bibcite{cheung2010retinal}{12}
+\bibcite{patton2006retinal}{13}
+\bibcite{wong2005fractal}{14}
+\bibcite{hoover2000locating}{15}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Cross-dataset generalisation: DRIVE vs.~STARE performance for all three models across five metrics. Dice drops by $\sim $44 percentage points on STARE, and structural metrics (CCA, BPR, JPR) collapse, underscoring the importance of topology-aware evaluation on out-of-distribution data.}}{8}{}\protected@file@percent }
+\newlabel{fig:drive_vs_stare}{{9}{8}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Future Work}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Conclusion}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{8}{}\protected@file@percent }
+\bibcite{zhou2023foundation}{16}
+\bibcite{joshi2022retinal}{17}
+\bibcite{zhao2020vessel}{18}
+\bibcite{stucki2024efficient}{19}
+\bibcite{berger2024topologically}{20}
+\bibcite{li2024universal}{21}
+\bibcite{wen2024topology}{22}
+\bibcite{kirchhoff2024does}{23}
+\bibcite{liu2024domain}{24}
+\bibcite{jin2022fives}{25}
+\bibcite{kreitner2024synthetic}{26}
+\bibcite{zhang2024retinal}{27}
+\bibcite{zhao2020rethinking}{28}
+\bibcite{wyburd2021tedsnet}{29}
+\bibcite{xu2024g2vit}{30}
+\bibcite{wang2025masked}{31}
+\bibcite{feng2024coordinate}{32}
+\bibcite{wang2024progressive}{33}
+\bibcite{ruan2024vmunet}{34}
+\bibcite{wu2024ultralight}{35}
+\gdef \@abspage@last{9}
