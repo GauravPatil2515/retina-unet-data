@@ -24,7 +24,7 @@ gauravpatil2515@gmail.com}
 \maketitle
 
 \begin{abstract}
-Retinal vessel segmentation is critical for diagnosing ocular diseases, yet traditional evaluation metrics like the Dice coefficient fail to capture vascular topology, masking severe structural defects like capillary dropout and fragmented vessel trees. We introduce a comprehensive topology-aware structural evaluation protocol for retinal vessel segmentation, validated across multiple datasets and architectures. The protocol incorporates eight topology-aware structural metrics grounded in design principles linking clinical properties to mathematical formalizations. Using this protocol, we conduct a systematic benchmark comparing 5 architectures on three public datasets (DRIVE, STARE, and CHASE\_DB1). Our findings reveal that models achieving near-identical Dice scores ($\Delta < 0.6\%$) can differ significantly in connectivity preservation and up to 75.7 points in graph edit distance, demonstrating the structural blindness of pixel-level overlap. Finally, we provide a case study showing that curriculum learning combined with topological loss improves structural metrics without degrading Dice performance. We argue that future benchmarks must adopt topology-aware evaluation to ensure clinically meaningful segmentation quality.
+Retinal vessel segmentation is critical for diagnosing ocular diseases, yet traditional evaluation metrics like the Dice coefficient fail to capture vascular topology, masking severe structural defects like capillary dropout and fragmented vessel trees. We introduce a comprehensive topology-aware structural evaluation protocol for retinal vessel segmentation, validated across multiple datasets and architectures. The protocol incorporates eight topology-aware structural metrics grounded in design principles linking clinical properties to mathematical formalizations. Using this protocol, we conduct a systematic benchmark comparing 3 architectures on three public datasets (DRIVE, STARE, and CHASE\_DB1). Our findings reveal that models achieving near-identical Dice scores ($\Delta < 0.6\%$) can differ significantly in connectivity preservation and up to 75.7 points in graph edit distance, demonstrating the structural blindness of pixel-level overlap. Finally, we provide a case study showing that curriculum learning combined with topological loss improves structural metrics without degrading Dice performance. We argue that future benchmarks must adopt topology-aware evaluation to ensure clinically meaningful segmentation quality.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -43,7 +43,7 @@ This paper addresses this research gap. We introduce the first comprehensive top
 Our contributions are threefold:
 \begin{enumerate}
     \item \textbf{Protocol Design}: We define a principled structural evaluation protocol comprising 8 validated metrics (CCA, BFR, SVD, SkelDice, SkelHD, BPR, JPR, GED) linking clinical properties to mathematical formalizations.
-    \item \textbf{Systematic Benchmark}: We provide a multi-model, multi-dataset benchmark evaluating 5 architectures on DRIVE, STARE, and CHASE\_DB1, revealing that models with near-identical Dice scores exhibit substantial differences in structural quality.
+    \item \textbf{Systematic Benchmark}: We provide a multi-model, multi-dataset benchmark evaluating 3 architectures on DRIVE, STARE, and CHASE\_DB1, revealing that models with near-identical Dice scores exhibit substantial differences in structural quality.
     \item \textbf{Case Study Validation}: We show that curriculum learning combined with topological loss improves structural metrics (+11.2\% CCA, +5.7\% JPR, $-7.3\%$ GED) without degrading Dice, demonstrating that our protocol captures structural improvements Dice cannot.
 \end{enumerate}
 All code, synthetic validation suites, and pre-computed metric benchmarks are available at \url{https://github.com/gauravpatil2515/Retina-UNet}.
@@ -137,9 +137,9 @@ We define a structural evaluation suite comprising 8 structural metrics and 4 cl
     \item \textbf{Sparse Vessel Dice (SVD)}: Dice coefficient computed only on patches with vessel ratio below a threshold. $\text{SVD} = \frac{2 |Y_{pred} \cap Y_{gt}|}{|Y_{pred}| + |Y_{gt}|}$ where density $\rho < 0.05$.
     \item \textbf{Skeleton Dice (SkelDice)}: Dice computed on morphologically skeletonized binary masks. $\text{SkelDice} = \frac{2 |S_{pred} \cap S_{gt}|}{|S_{pred}| + |S_{gt}|}$.
     \item \textbf{Skeleton Hausdorff Distance (SkelHD)}: 95th percentile Hausdorff distance between prediction and ground truth skeletons. $\text{SkelHD} = \max_{95\%} ( \min_{s_p \in S_{pred}, s_g \in S_{gt}} d(s_p, s_g) )$.
-    \item \textbf{Branch Preservation Rate (BPR)}: $\text{BPR} = \frac{\min(n_{\text{pred}}^{\text{branches}}, n_{\text{gt}}^{\text{branches}})}{n_{\text{gt}}^{\text{branches}}}$. Range $[0,1]$, ideal $=1$.
-    \item \textbf{Junction Preservation Rate (JPR)}: $\text{JPR} = \frac{\min(n_{\text{pred}}^{\text{junctions}}, n_{\text{gt}}^{\text{junctions}})}{n_{\text{gt}}^{\text{junctions}}}$. Range $[0,1]$, ideal $=1$.
-    \item \textbf{Graph Edit Distance (GED)}: Minimum cost to transform prediction graph $G_{pred}$ to $G_{gt}$ via node/edge operations ($e_i$). $\text{GED}(G_{pred}, G_{gt}) = \min_{(e_1,\dots,e_k)} \sum_{i=1}^k c(e_i)$.
+    \item \textbf{Branch Preservation Rate (BPR)}: $\text{BPR} = \frac{\min(N_{\text{pred}}^{\text{branch}}, N_{\text{gt}}^{\text{branch}})}{N_{\text{gt}}^{\text{branch}}}$, where $N^{\text{branch}}$ is the branch count. Range $[0,1]$, ideal $=1$.
+    \item \textbf{Junction Preservation Rate (JPR)}: $\text{JPR} = \frac{\min(N_{\text{pred}}^{\text{junc}}, N_{\text{gt}}^{\text{junc}})}{N_{\text{gt}}^{\text{junc}}}$, where $N^{\text{junc}}$ is the junction count. Range $[0,1]$, ideal $=1$.
+    \item \textbf{Graph Edit Distance (GED)}: Minimum cost to transform prediction graph $G_{pred}$ to $G_{gt}$ via node/edge operations (denoted as $e_i$). $\text{GED}(G_{pred}, G_{gt}) = \min_{(e_1,\dots,e_k)} \sum_{i=1}^k c(e_i)$.
 \end{itemize}
 
 \subsubsection{Clinical Descriptors}
@@ -200,7 +200,7 @@ We compare three models:
     \item U-Net++ \cite{zhou2018unet++} (9M parameters)
     \item Retina-UNet (ours): U-Net++ backbone with Curriculum Learning and Topological Loss (9M parameters)
 \end{enumerate}
-All models are trained with BCE+Dice loss unless otherwise specified. Hardware: NVIDIA GeForce RTX 3050 Laptop GPU (6 GB), PyTorch 2.6.0, CUDA 12.4.
+All models are trained with Binary Cross-Entropy (BCE) + Dice loss unless otherwise specified. Hardware: NVIDIA GeForce RTX 3050 Laptop GPU (6 GB), PyTorch 2.6.0, CUDA 12.4.
 
 \subsection{Benchmark Results}
 \subsubsection{Standard Pixel-Level Metrics}
@@ -402,7 +402,7 @@ D: Full (A+B+C) & 80.48\% & 0.228 & 0.828 & 0.682 & 956.1 & 0.483 \\
 Key findings from the ablation study:
 \begin{itemize}
     \item Curriculum learning alone (B vs. A): Improves CCA by +9.3\% (0.205 $\rightarrow$ 0.224) with minimal Dice change (+0.10\%), confirming its role in healing the distribution gap from patch filtering.
-    \item Topological loss alone (C vs. A): Decreases Dice by -0.59\% (79.94\% $\rightarrow$ 79.35\%) but improves GED by -9.8\% (1031.8 $\rightarrow$ 1132.5 - note: lower GED is better, so this is actually a degradation), indicating that topological loss can destabilize training when applied without curriculum stabilization.
+    \item Topological loss alone (C vs. A): Decreases Dice by -0.59\% (79.94\% $\rightarrow$ 79.35\%) and severely increases GED by 9.8\% (1031.8 $\rightarrow$ 1132.5). Since lower GED is better, this is a significant degradation, indicating that topological loss can destabilize training when applied without curriculum stabilization.
     \item Full method (D vs. A): Achieves the best structural metrics across all configurations:
         \begin{itemize}
             \item CCA: +11.2\% improvement (0.205 $\rightarrow$ 0.228)
@@ -444,7 +444,7 @@ All experiments use the following configuration unless otherwise specified:
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{fig10_architecture.png}
-\caption{Overview of the Retinal Vessel Segmentation preprocessing and training pipeline. The raw RGB image undergoes green channel extraction, CLAHE, and FOV masking. During training, patches are sampled according to a 3-stage curriculum learning strategy and processed by the U-Net++ backbone. The network is optimized using a combined loss function that includes topological regularization via persistent homology.}
+\caption{Overview of the Retinal Vessel Segmentation preprocessing and training pipeline. The raw RGB image undergoes green channel extraction, Contrast Limited Adaptive Histogram Equalization (CLAHE), and FOV masking. During training, patches are sampled according to a 3-stage curriculum learning strategy and processed by the U-Net++ backbone. The network is optimized using a combined loss function that includes topological regularization via persistent homology.}
 \label{fig:architecture}
 \end{figure*}
 
@@ -461,7 +461,7 @@ The structural deficiencies identified in our analysis have direct clinical impl
 A model that achieves high Dice through branch merging (as evidenced by the lack of correlation between Dice and branch preservation) may report artificially normal vessel density while missing critical pathophysiological changes in vascular branching patterns.
 
 \subsection{Why the Anti-Incentive Exists}
-The structural anti-incentive arises from the extreme class imbalance in retinal vessel segmentation. Vessel pixels constitute only 8-12\% of the image, with thin vessels (<3px width) representing less than 2\% of labeled pixels. When a thin vessel branch is missed:
+The structural anti-incentive arises from the extreme class imbalance in retinal vessel segmentation. Vessel pixels constitute only 8-12\% of the image, with thin vessels ($< 3$ px width) representing less than 2\% of labeled pixels. When a thin vessel branch is missed:
 \begin{itemize}
     \item The false negative contribution to Dice is minimal due to the small pixel count
     \item However, merging that vessel with background slightly increases true negatives while eliminating potential false positives
