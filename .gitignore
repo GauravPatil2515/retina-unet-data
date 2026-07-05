@@ -48,3 +48,4 @@ logs/
 # Temporary
 tmp/
 temp/
+results/checkpoints_unetpp/best.pth
